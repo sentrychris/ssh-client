@@ -1,6 +1,4 @@
-# Tornamiko
-
-A web-based SSH client.
+# Web-based SSH client.
 
 ## Installation
 
