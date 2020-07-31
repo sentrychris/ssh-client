@@ -1,3 +1,3 @@
-import rpsh from "./app";
+import tornamiko from "./app";
 
-document.addEventListener('DOMContentLoaded', () => rpsh.connect());
+document.addEventListener('DOMContentLoaded', () => tornamiko.connect());

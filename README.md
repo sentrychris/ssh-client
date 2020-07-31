@@ -23,10 +23,12 @@ $ npm run build
 ## Run
 
 ```sh
-$ python main.py
+$ python run.py
 ```
 
-## Screenshot
+## Screenshots
+
+![static/tornamiko.png](static/img/ui.png)
 
 ![static/tornamiko.png](static/img/tornamiko.png)
 

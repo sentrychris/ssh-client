@@ -9,8 +9,8 @@ let form = document.getElementById('connect');
 let status = document.getElementById('status');
 let loading = document.querySelector('.loading');
 
-const rpsh = {};
-rpsh.connect = () => {
+const tornamiko = {};
+tornamiko.connect = () => {
     form.addEventListener('submit', event => {
         event.preventDefault();
 
@@ -97,4 +97,4 @@ let toggle_display = () => {
     document.querySelector('.xterm-viewport').classList.toggle('xterm_display');
 };
 
-export default rpsh;
+export default tornamiko;
