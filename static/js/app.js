@@ -33,6 +33,7 @@ tornamiko.connect = () => {
             url: url,
             data: data
         }).then(response => {
+            console.log(response);
             loading.style.display = 'none';
             process(response.data);
         }).catch(error => {

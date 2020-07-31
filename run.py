@@ -116,7 +116,24 @@ class Worker(object):
         logging.info('Connection to {} lost'.format(self.dest_addr))
 
 
-class IndexHandler(tornado.web.RequestHandler):
+class BaseHandler(tornado.web.RequestHandler):
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
+        self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+
+    def post(self):
+        self.write('some post')
+
+    def get(self):
+        self.write('some get')
+
+    def options(self):
+        self.set_status(204)
+        self.finish()
+
+
+class IndexHandler(BaseHandler):
     def get_privatekey(self):
         try:
             data = self.request.files.get('privatekey')[0]['body']
@@ -264,7 +281,7 @@ def main():
         'template_path': os.path.join(base_dir, 'dist'),
         'static_path': os.path.join(base_dir, 'dist'),
         'cookie_secret': uuid.uuid1().hex,
-        'xsrf_cookies': True,
+        'xsrf_cookies': False,
         'debug': True
     }
 
