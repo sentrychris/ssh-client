@@ -28,7 +28,7 @@ $ python main.py
 
 ## Screenshot
 
-![static/tornamiko.png](static/tornamiko.png)
+![static/tornamiko.png](static/img/tornamiko.png)
 
 
 

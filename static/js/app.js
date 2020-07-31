@@ -4,14 +4,18 @@ import axios from 'axios';
 
 const container = document.querySelector('.container');
 
-let btn = document.querySelector('.btn-primary');
+let btn = document.querySelector('.btn-success');
 let form = document.getElementById('connect');
 let status = document.getElementById('status');
+let loading = document.querySelector('.loading');
 
 const rpsh = {};
 rpsh.connect = () => {
     form.addEventListener('submit', event => {
         event.preventDefault();
+
+        loading.style.display = 'inline';
+
         let url = form.getAttribute('action'),
             type = form.getAttribute('type'),
             data = new FormData(form);
@@ -29,8 +33,11 @@ rpsh.connect = () => {
             url: url,
             data: data
         }).then(response => {
+            loading.style.display = 'none';
             process(response.data);
-        })
+        }).catch(error => {
+            console.log(error);
+        });
     });
 }
 

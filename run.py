@@ -261,8 +261,8 @@ class WsockHandler(tornado.websocket.WebSocketHandler):
 
 def main():
     settings = {
-        'template_path': os.path.join(base_dir, 'templates'),
-        'static_path': os.path.join(base_dir, 'static'),
+        'template_path': os.path.join(base_dir, 'dist'),
+        'static_path': os.path.join(base_dir, 'dist'),
         'cookie_secret': uuid.uuid1().hex,
         'xsrf_cookies': True,
         'debug': True
