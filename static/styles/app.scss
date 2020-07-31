@@ -1,2 +1,17 @@
 @import "~bootstrap/scss/bootstrap";
 @import "~xterm/css/xterm.css";
+
+html, body {
+    height: 100%;
+}
+
+body {
+    overflow-x: hidden;
+    font-family: Montserrat,Lato,sans-serif;
+    background: #f5f5f5;
+}
+
+.xterm_display {
+    background-color: black;
+    overflow-y: hidden !important;
+}

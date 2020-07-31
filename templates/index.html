@@ -1,65 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title> WebSSH </title>
-    <link href="static/img/favicon.png" rel="icon" type="image/png">
-    <link href="../static/styles/main.min.css" rel="stylesheet" type="text/css"/>
-    <style>
-      .row {
-        margin-top: 20px;
-        margin-bottom: 10px;
-      }
-
-      .container {
-        margin-top: 20px;
-      }
-
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <form id="connect" action="" type="post" enctype="multipart/form-data">
-        <div class="row">
-          <div class="col">
-            <label for="Hostname">Hostname</label>
-            <input class="form-control" type="text" name="hostname" value="">
-          </div>
-          <div class="col">
-            <label for="Port">Port</label>
-            <input class="form-control" type="text" name="port" value="">
-          </div>
+<head>
+  <meta charset="UTF-8">
+  <title> WebSSH </title>
+  <link href="static/img/favicon.png" rel="icon" type="image/png">
+  <link href="../static/styles/main.min.css" rel="stylesheet" type="text/css"/>
+  <style>
+    .row {
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    
+    .container {
+      margin-top: 20px;
+    }
+    
+  </style>
+</head>
+<body>
+  <div class="d-flex flex-column flex-md-row align-items-center p-4 px-md-4 mb-0 mb-md-3 bg-white box-shadow">
+    <h5 class="my-0 mr-md-auto font-weight-normal">Tornamiko SSH</h5>
+  </div>
+  <div class="container">
+    <form id="connect" action="" type="post" enctype="multipart/form-data">
+      <div class="row">
+        <div class="col">
+          <label for="Hostname">Hostname</label>
+          <input class="form-control" type="text" name="hostname" value="">
         </div>
-        <div class="row">
-          <div class="col">
-            <label for="Username">Username</label>
-            <input class="form-control" type="text" name="username" value="">
-          </div>
-          <div class="col">
-            <label for="Username">Private Key</label>
-            <input class="form-control" type="file" name="privatekey" value="">
-          </div>
+        <div class="col">
+          <label for="Port">Port</label>
+          <input class="form-control" type="text" name="port" value="22">
         </div>
-        <div class="row">
-          <div class="col">
-            <label for="Password">Password</label>
-            <input class="form-control" type="password" name="password" placeholder=""  value="">
-          </div>
-          <div class="col">
-            If Private Key is chosen, password will be used to decrypt the Private Key if it is encrypted, otherwise used as the password of username.
-          </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <label for="Username">Username</label>
+          <input class="form-control" type="text" name="username" value="">
         </div>
-        {% module xsrf_form_html() %}
-        <button type="submit" class="btn btn-primary">Connect</button>
-      </form>
-
-    </div>
-
-    <div class="container">
-      <div id="status" style="color: red;"></div>
-      <div id="terminal"></div>
-    </div>
-
-    <script src="static/js/main.min.js"></script>
-  </body>
+        <div class="col">
+          <label for="Username">Private Key</label>
+          <input class="form-control" type="file" name="privatekey" value="">
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <label for="Password">Password</label>
+          <input class="form-control" type="password" name="password" placeholder=""  value="">
+        </div>
+        <div class="col">
+          If Private Key is chosen, password will be used to decrypt the Private Key if it is encrypted, otherwise used as the password of username.
+        </div>
+      </div>
+      {% module xsrf_form_html() %}
+      <button type="submit" class="btn btn-primary">Connect</button>
+    </form>
+    
+  </div>
+  
+  <div class="container-fluid">
+    <div id="status" class="text-danger"></div>
+    <div id="terminal"></div>
+  </div>
+  
+  <script src="static/js/main.min.js"></script>
+</body>
 </html>

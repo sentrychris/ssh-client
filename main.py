@@ -33,11 +33,11 @@ def recycle(worker):
 
 
 class Worker(object):
-    def __init__(self, ssh, channel, dst_addr):
+    def __init__(self, ssh, channel, dest_addr):
         self.loop = IOLoop.current()
         self.ssh = ssh
         self.channel = channel
-        self.dst_addr = dst_addr
+        self.dest_addr = dest_addr
         self.fd = channel.fileno()
         self.id = str(id(self))
         self.data_to_dst = []
@@ -70,7 +70,7 @@ class Worker(object):
             if errno_from_exception(e) in _ERRNO_CONNRESET:
                 self.close()
         else:
-            logging.debug('"{}" from {}'.format(data, self.dst_addr))
+            logging.debug('"{}" from {}'.format(data, self.dest_addr))
             if not data:
                 self.close()
                 return
@@ -87,7 +87,7 @@ class Worker(object):
             return
 
         data = ''.join(self.data_to_dst)
-        logging.debug('"{}" to {}'.format(data, self.dst_addr))
+        logging.debug('"{}" to {}'.format(data, self.dest_addr))
 
         try:
             sent = self.channel.send(data)
@@ -113,7 +113,7 @@ class Worker(object):
             self.handler.close()
         self.channel.close()
         self.ssh.close()
-        logging.info('Connection to {} lost'.format(self.dst_addr))
+        logging.info('Connection to {} lost'.format(self.dest_addr))
 
 
 class IndexHandler(tornado.web.RequestHandler):
@@ -183,17 +183,17 @@ class IndexHandler(tornado.web.RequestHandler):
         ssh.load_system_host_keys()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         args = self.get_args()
-        dst_addr = '{}:{}'.format(*args[:2])
-        logging.info('Connecting to {}'.format(dst_addr))
+        dest_addr = '{}:{}'.format(*args[:2])
+        logging.info('Connecting to {}'.format(dest_addr))
         try:
             ssh.connect(*args, timeout=6)
         except socket.error:
-            raise ValueError('Unable to connect to {}'.format(dst_addr))
+            raise ValueError('Unable to connect to {}'.format(dest_addr))
         except paramiko.BadAuthenticationType:
             raise ValueError('Authentication failed.')
         channel = ssh.invoke_shell(term='xterm')
         channel.setblocking(0)
-        worker = Worker(ssh, channel, dst_addr)
+        worker = Worker(ssh, channel, dest_addr)
         IOLoop.current().call_later(DELAY, recycle, worker)
         return worker
 

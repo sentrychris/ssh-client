@@ -51,8 +51,8 @@ const process = msg => {
 
     const terminal = document.getElementById('terminal');
     const xterm = new Terminal({ cursorBlink: true });
-    const fda = new FitAddon();
-    xterm.loadAddon(fda);
+    const xdisplay = new FitAddon();
+    xterm.loadAddon(xdisplay);
 
     xterm.onData(data => {
         websocket.send(data)
@@ -60,9 +60,11 @@ const process = msg => {
 
     websocket.onopen = () => {
         container.style.display = 'none';
-
         xterm.open(terminal);
-        fda.fit();
+
+        toggle_display();
+
+        xdisplay.fit();
     };
 
     websocket.onmessage = msg => {
@@ -70,15 +72,22 @@ const process = msg => {
     }
 
     websocket.onclose = event => {
+        console.log(event);
+        toggle_display();
         xterm.dispose();
-        container.style.display = 'initial';
+        container.style.display = 'block';
         status.innerText = event.reason;
-        btn.setAttribute('disabled', false);
+        btn.removeAttribute('disabled');
     };
 
     websocket.onerror = event => {
         console.log(event);
     }
 }
+
+let toggle_display = () => {
+    document.querySelector('body').classList.toggle('xterm_display');
+    document.querySelector('.xterm-viewport').classList.toggle('xterm_display');
+};
 
 export default rpsh;
