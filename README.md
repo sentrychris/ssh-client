@@ -2,7 +2,7 @@
 
 ## Installation
 
-Install dependencies:
+Install dependencies
 
 ```sh
 $ pip install -r requirements.txt
@@ -13,7 +13,7 @@ $ npm install
 ```
 
 
-Build assets:
+Build
 
 ```sh
 $ npm run build
@@ -23,7 +23,7 @@ $ npm run build
 ## Run
 
 ```sh
-$ python run.py
+$ python manage.py run
 ```
 
 ## Screenshots
