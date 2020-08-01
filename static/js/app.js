@@ -1,6 +1,5 @@
 import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
-import axios from 'axios';
 
 const container = document.querySelector('.container');
 
@@ -28,14 +27,19 @@ tornamiko.connect = () => {
         status.innerText = '';
         btn.setAttribute('disabled', true);
 
-        axios({
+        fetch(url, {
+            mode: 'cors',
+            credentials: 'same-origin',
             method: type,
-            url: url,
-            data: data
+            body: data
         }).then(response => {
-            console.log(response);
             loading.style.display = 'none';
-            process(response.data);
+            if (!response.ok) {
+                throw new Error('Could not connect.')
+            }
+            return response.json();
+        }).then(data => {
+            process(data);
         }).catch(error => {
             console.log(error);
         });
