@@ -10,7 +10,7 @@ module.exports = {
         './static/scss/app.scss'
     ],
     output: {
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname, 'public'),
         filename: 'js/main.min.js',
     },
     plugins: [
@@ -44,7 +44,7 @@ module.exports = {
                 test: /\.(png|jpe?g|gif)$/i,
                 use: [
                     {
-                        loader: 'file-loader?name=/dist/img/[name].[ext]',
+                        loader: 'file-loader?name=/public/img/[name].[ext]',
                     },
                 ],
             },

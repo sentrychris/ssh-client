@@ -1,122 +1,28 @@
 import io
-import logging
-import os.path
 import socket
-import traceback
-import uuid
 import weakref
 import paramiko
 import tornado.web
 import tornado.websocket
+
 from tornado.ioloop import IOLoop
-from tornado.iostream import _ERRNO_CONNRESET
-from tornado.options import define, options, parse_command_line
-from tornado.util import errno_from_exception
+from .worker import Worker
 
-
-define('address', default='127.0.0.1', help='listen address')
-define('port', default=3400, help='listen port', type=int)
-
-
-BUF_SIZE = 1024
 DELAY = 3
-base_dir = os.path.dirname(__file__)
 workers = {}
 
 
 def recycle(worker):
     if worker.handler:
         return
-    logging.debug('Recycling worker {}'.format(worker.id))
     workers.pop(worker.id, None)
     worker.close()
 
 
-class Worker(object):
-    def __init__(self, ssh, channel, dest_addr):
-        self.loop = IOLoop.current()
-        self.ssh = ssh
-        self.channel = channel
-        self.dest_addr = dest_addr
-        self.fd = channel.fileno()
-        self.id = str(id(self))
-        self.data_to_dst = []
-        self.handler = None
-        self.mode = IOLoop.READ
-
-    def __call__(self, fd, events):
-        if events & IOLoop.READ:
-            self.on_read()
-        if events & IOLoop.WRITE:
-            self.on_write()
-        if events & IOLoop.ERROR:
-            self.close()
-
-    def set_handler(self, handler):
-        if not self.handler:
-            self.handler = handler
-
-    def update_handler(self, mode):
-        if self.mode != mode:
-            self.loop.update_handler(self.fd, mode)
-            self.mode = mode
-
-    def on_read(self):
-        logging.debug('worker {} on read'.format(self.id))
-        try:
-            data = self.channel.recv(BUF_SIZE)
-        except (OSError, IOError) as e:
-            logging.error(e)
-            if errno_from_exception(e) in _ERRNO_CONNRESET:
-                self.close()
-        else:
-            logging.debug('"{}" from {}'.format(data, self.dest_addr))
-            if not data:
-                self.close()
-                return
-
-            logging.debug('"{}" to {}'.format(data, self.handler.src_addr))
-            try:
-                self.handler.write_message(data)
-            except tornado.websocket.WebSocketClosedError:
-                self.close()
-
-    def on_write(self):
-        logging.debug('worker {} on write'.format(self.id))
-        if not self.data_to_dst:
-            return
-
-        data = ''.join(self.data_to_dst)
-        logging.debug('"{}" to {}'.format(data, self.dest_addr))
-
-        try:
-            sent = self.channel.send(data)
-        except (OSError, IOError) as e:
-            logging.error(e)
-            if errno_from_exception(e) in _ERRNO_CONNRESET:
-                self.close()
-            else:
-                self.update_handler(IOLoop.WRITE)
-        else:
-            self.data_to_dst = []
-            data = data[sent:]
-            if data:
-                self.data_to_dst.append(data)
-                self.update_handler(IOLoop.WRITE)
-            else:
-                self.update_handler(IOLoop.READ)
-
-    def close(self):
-        logging.debug('Closing worker {}'.format(self.id))
-        if self.handler:
-            self.loop.remove_handler(self.fd)
-            self.handler.close()
-        self.channel.close()
-        self.ssh.close()
-        logging.info('Connection to {} lost'.format(self.dest_addr))
-
-
 class BaseHandler(tornado.web.RequestHandler):
+    def data_received(self, chunk):
+        pass
+
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Headers", "x-requested-with")
@@ -142,10 +48,8 @@ class IndexHandler(BaseHandler):
         return data.decode('utf-8')
 
     def get_specific_pkey(self, pkeycls, privatekey, password):
-        logging.info('Trying {}'.format(pkeycls.__name__))
         try:
-            pkey = pkeycls.from_private_key(io.StringIO(privatekey),
-                                            password=password)
+            pkey = pkeycls.from_private_key(io.StringIO(privatekey), password=password)
         except paramiko.PasswordRequiredException:
             raise ValueError('Need password to decrypt the private key.')
         except paramiko.SSHException:
@@ -192,7 +96,6 @@ class IndexHandler(BaseHandler):
         privatekey = self.get_privatekey()
         pkey = self.get_pkey(privatekey, password) if privatekey else None
         args = (hostname, port, username, password, pkey)
-        logging.debug(args)
         return args
 
     def ssh_connect(self):
@@ -201,7 +104,6 @@ class IndexHandler(BaseHandler):
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         args = self.get_args()
         dest_addr = '{}:{}'.format(*args[:2])
-        logging.info('Connecting to {}'.format(dest_addr))
         try:
             ssh.connect(*args, timeout=6)
         except socket.error:
@@ -224,7 +126,6 @@ class IndexHandler(BaseHandler):
         try:
             worker = self.ssh_connect()
         except Exception as e:
-            logging.error(traceback.format_exc())
             status = str(e)
         else:
             worker_id = worker.id
@@ -233,12 +134,14 @@ class IndexHandler(BaseHandler):
         self.write(dict(id=worker_id, status=status))
 
 
-class WsockHandler(tornado.websocket.WebSocketHandler):
-
+class WebsocketHandler(tornado.websocket.WebSocketHandler):
     def __init__(self, *args, **kwargs):
         self.loop = IOLoop.current()
         self.worker_ref = None
         super(self.__class__, self).__init__(*args, **kwargs)
+
+    def data_received(self, chunk):
+        pass
 
     def check_origin(self, origin):
         return True
@@ -253,7 +156,6 @@ class WsockHandler(tornado.websocket.WebSocketHandler):
 
     def open(self):
         self.src_addr = self.get_addr()
-        logging.info('Connected from {}'.format(self.src_addr))
         worker = workers.pop(self.get_argument('id'), None)
         if not worker:
             self.close(reason='Invalid worker id')
@@ -264,38 +166,11 @@ class WsockHandler(tornado.websocket.WebSocketHandler):
         self.loop.add_handler(worker.fd, worker, IOLoop.READ)
 
     def on_message(self, message):
-        logging.debug('"{}" from {}'.format(message, self.src_addr))
         worker = self.worker_ref()
         worker.data_to_dst.append(message)
         worker.on_write()
 
     def on_close(self):
-        logging.info('Disconnected from {}'.format(self.src_addr))
         worker = self.worker_ref() if self.worker_ref else None
         if worker:
             worker.close()
-
-
-def main():
-    settings = {
-        'template_path': os.path.join(base_dir, 'public'),
-        'static_path': os.path.join(base_dir, 'public'),
-        'cookie_secret': uuid.uuid1().hex,
-        'xsrf_cookies': False,
-        'debug': True
-    }
-
-    handlers = [
-        (r'/',   IndexHandler),
-        (r'/ws', WsockHandler)
-    ]
-
-    parse_command_line()
-    app = tornado.web.Application(handlers, **settings)
-    app.listen(options.port, options.address)
-    logging.info('Listening on {}:{}'.format(options.address, options.port))
-    IOLoop.current().start()
-
-
-if __name__ == '__main__':
-    main()
