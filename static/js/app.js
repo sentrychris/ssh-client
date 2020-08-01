@@ -50,8 +50,8 @@ const process = msg => {
     if (msg.status) {
         status.innerText = msg.status;
         setTimeout(function () {
-            btn.setAttribute('disabled', false);
-        }, 3000);
+            btn.removeAttribute('disabled');
+        }, 500);
 
         return;
     }

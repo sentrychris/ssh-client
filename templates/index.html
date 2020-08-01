@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <title>Tornamiko</title>
     <link href="../static/css/main.min.css" rel="stylesheet" type="text/css"/>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+          integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 </head>
 <body>
     <div class="d-flex flex-column flex-md-row align-items-center p-4 px-md-4 mb-0 mb-md-3 bg-white box-shadow">
@@ -17,31 +18,34 @@
                     <i class="fa fa-cogs mr-2"></i> Configure Connection
                 </div>
                 <div class="card-body">
+                    <div class="message py-3">
+                        <div id="status" class="text-danger"></div>
+                    </div>
                     <form id="connect" action="" type="post" enctype="multipart/form-data">
                         <div class="form-group row">
                             <div class="col-6">
                                 <label for="Hostname">Hostname</label>
-                                <input class="form-control" type="text" name="hostname" value="">
+                                <input id="Hostname" class="form-control" type="text" name="hostname" value="">
                             </div>
                             <div class="col-6">
                                 <label for="Port">Port</label>
-                                <input class="form-control" type="text" name="port" value="22">
+                                <input id="Port" class="form-control" type="text" name="port" value="22">
                             </div>
                         </div>
                         <div class="form-group row">
                             <div class="col-6">
                                 <label for="Username">Username</label>
-                                <input class="form-control" type="text" name="username" value="">
+                                <input id="Username" class="form-control" type="text" name="username" value="">
                             </div>
                             <div class="col-6">
-                                <label for="Username">Private Key</label>
-                                <input class="form-control file-control" type="file" name="privatekey" value="">
+                                <label for="Private_Key">Private Key</label>
+                                <input id="Private_Key" class="form-control file-control" type="file" name="privatekey" value="">
                             </div>
                         </div>
                         <div class="form-group row">
                             <div class="col-6">
                                 <label for="Password">Password</label>
-                                <input class="form-control" type="password" name="password" placeholder=""  value="">
+                                <input id="Password" class="form-control" type="password" name="password" placeholder=""  value="">
                             </div>
                         </div>
                         {% module xsrf_form_html() %}
@@ -59,7 +63,6 @@
     </div>
     
     <div class="container-fluid">
-        <div id="status" class="text-danger"></div>
         <div id="terminal"></div>
     </div>
     
