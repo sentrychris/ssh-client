@@ -41,8 +41,6 @@ function init() {
             const method = 'POST'
             const body = JSON.stringify(connection)
 
-            console.log(body)
-
             if (connection.privateKey && connection.privateKey.size > 16384) {
                 this.status = 'Key size exceeds maximum value.'
             }
@@ -55,7 +53,7 @@ function init() {
                     body
                 })
 
-                const payload = response.json()
+                const payload = await response.json()
                 await this.process(payload)
             } catch (err) {
                 console.log(err)

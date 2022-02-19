@@ -21,6 +21,7 @@ define('port', default=4200, help='listen port', type=int)
 
 def run():
     app.listen(options.port, options.address)
+    print("Listening on http://localhost:" + str(options.port))
     IOLoop.current().start()
 
 
