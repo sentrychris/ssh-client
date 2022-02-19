@@ -1,6 +1,7 @@
 import io
 import socket
 import paramiko
+import tornado.escape
 
 from tornado.ioloop import IOLoop
 from ..worker import Worker
@@ -17,7 +18,8 @@ class IndexHandler(BaseHandler):
         return data.decode('utf-8')
 
 
-    def get_specific_pkey(self, pkeycls, privatekey, password):
+    @staticmethod
+    def get_specific_pkey(pkeycls, privatekey, password):
         try:
             pkey = pkeycls.from_private_key(io.StringIO(privatekey), password=password)
         except paramiko.PasswordRequiredException:
@@ -42,35 +44,31 @@ class IndexHandler(BaseHandler):
         return pkey
 
 
-    def get_port(self):
-        value = self.get_value('port')
+    @staticmethod
+    def verify_port(port):
         try:
-            port = int(value)
+            port = int(port)
         except ValueError:
             port = 0
 
         if 0 < port < 65536:
             return port
 
-        raise ValueError('Invalid port {}'.format(value))
-
-
-    def get_value(self, name):
-        value = self.get_argument(name)
-
-        if not value:
-            raise ValueError('Empty {}'.format(name))
-
-        return value
+        raise ValueError('Invalid port {}'.format(port))
 
 
     def get_args(self):
-        hostname = self.get_value('hostname')
-        port = self.get_port()
-        username = self.get_value('username')
-        password = self.get_argument('password')
+        req = tornado.escape.json_decode(self.request.body)
+
+        hostname = req['hostname']
+        port = self.verify_port(req['port'])
+
+        username = req['username']
+        password = req['password']
+
         privatekey = self.get_privatekey()
         pkey = self.get_pkey(privatekey, password) if privatekey else None
+
         args = (hostname, port, username, password, pkey)
 
         return args
