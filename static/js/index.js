@@ -28,21 +28,15 @@ function init() {
             loading: null,
         },
 
-        terminal: null,
-
-        async initReactiveProperties() {
-            this.loading = false
-        },
-
         async connect() {
-            this.loading = true
+            this.setStatus('ok', 'Requesting new connection.', true)
 
             const url = '/'
             const method = 'POST'
             const body = JSON.stringify(connection)
 
             if (connection.privateKey && connection.privateKey.size > 16384) {
-                this.status = 'Key size exceeds maximum value.'
+                this.setStatus('error', 'Your key size exceeds the maximum limit.')
             }
 
             try {
@@ -61,15 +55,12 @@ function init() {
         },
 
         async process(response) {
-            if (response.message) {
-                this.status.message = response.message
-
-                setTimeout(function () {
-                    this.loading = false
-                }, 300)
-
+            if (!response.id) {
+                this.setStatus('ok', response.status)
                 return
             }
+
+            this.setStatus('ok', 'Starting websocket connection.')
 
             const wsUrl = window.location.href.replace('http', 'ws')
             const join = (wsUrl[wsUrl.length - 1] === '/' ? '' : '/')
@@ -106,12 +97,18 @@ function init() {
                 xterm.dispose()
 
                 this.$refs.container.style.display = 'block'
-                this.status.message = event.reason
+                this.setStatus('ok', event.reason)
             };
 
             websocket.onerror = event => {
                 console.log(event)
             }
+        },
+
+        setStatus(status, message, loading = false) {
+            this.state.status = status
+            this.state.message = message
+            this.state.loading = loading
         }
     }
 }
