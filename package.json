@@ -1,0 +1,35 @@
+{
+  "name": "ssh-client",
+  "version": "1.0.0",
+  "description": "Web SSH client.",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "serve": "webpack-dev-server",
+    "watch": "webpack --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrisrowles/ssh-client.git"
+  },
+  "author": "Chris Rowles",
+  "license": "MIT",
+  "homepage": "https://github.com/chrisrowles/ssh-client.git",
+  "devDependencies": {
+    "copy-webpack-plugin": "^6.0.3",
+    "css-loader": "^4.1.1",
+    "file-loader": "^6.0.0",
+    "mini-css-extract-plugin": "^0.9.0",
+    "sass": "^1.26.10",
+    "sass-loader": "^9.0.2",
+    "style-loader": "^1.2.1",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "dependencies": {
+    "bootstrap": "^4.6.1",
+    "xterm": "^4.8.1",
+    "xterm-addon-fit": "^0.4.0"
+  }
+}

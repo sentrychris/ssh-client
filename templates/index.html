@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tornamiko</title>
+    <link href="../static/css/main.min.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+          integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+</head>
+<body>
+    <div class="d-flex flex-column flex-md-row align-items-center p-4 px-md-4 mb-0 mb-md-3 bg-white box-shadow">
+        <h5 class="my-0 mr-md-auto font-weight-normal">SSH Client</h5>
+    </div>
+    <div class="container">
+        <section class="bg-white p-4 my-4 shadow border-radius-5">
+            <div class="card border-0">
+                <div class="card-header bg-white text-muted">
+                    <i class="fa fa-cogs mr-2"></i> Configure Connection
+                </div>
+                <div class="card-body">
+                    <div class="message py-3">
+                        <div id="status" class="text-danger"></div>
+                    </div>
+                    <form id="connect" action="" type="post" enctype="multipart/form-data">
+                        <div class="form-group row">
+                            <div class="col-6">
+                                <label for="Hostname">Hostname</label>
+                                <input id="Hostname" class="form-control" type="text" name="hostname" value="">
+                            </div>
+                            <div class="col-6">
+                                <label for="Port">Port</label>
+                                <input id="Port" class="form-control" type="text" name="port" value="22">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-6">
+                                <label for="Username">Username</label>
+                                <input id="Username" class="form-control" type="text" name="username" value="">
+                            </div>
+                            <div class="col-6">
+                                <label for="Private_Key">Private Key</label>
+                                <input id="Private_Key" class="form-control file-control" type="file" name="privatekey" value="">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-6">
+                                <label for="Password">Password</label>
+                                <input id="Password" class="form-control" type="password" name="password" placeholder=""  value="">
+                            </div>
+                        </div>
+                        {% module xsrf_form_html() %}
+                        <div class="form-group row mt-3">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-success btn-connect">Connect 
+                                    <span class="loading"><i class="fa fa-spinner fa-spin ml-2"></i></span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <div class="container-fluid">
+        <div id="terminal"></div>
+    </div>
+    
+    <script src="../static/js/main.min.js"></script>
+</body>
+</html>
