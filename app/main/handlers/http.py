@@ -8,7 +8,7 @@ from ..worker import Worker
 from .base import BaseHandler, workers, recycle
 
 
-class IndexHandler(BaseHandler):
+class HttpHandler(BaseHandler):
     def get_privatekey(self):
         try:
             data = self.request.files.get('privatekey')[0]['body']

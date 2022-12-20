@@ -27,6 +27,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
         addr = ':'.join(ip + port)
 
         if not addr:
+            print(self.stream.socket.getpeername())
             addr = '{}:{}'.format(*self.stream.socket.getpeername())
         return addr
 

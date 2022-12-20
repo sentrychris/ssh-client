@@ -6,8 +6,8 @@ module.exports = {
     mode: 'development',
     devtool: 'inline-source-map',
     entry: [
-        './static/js/index.js',
-        './static/scss/app.scss'
+        './assets/js/index.js',
+        './assets/scss/app.scss'
     ],
     output: {
         path: path.resolve(__dirname, 'public'),
@@ -20,8 +20,8 @@ module.exports = {
         }),
         new CopyWebpackPlugin({
             patterns: [
-                { from:'templates', to: ''},
-                { from:'static/img', to:'img'}
+                { from:'views', to: ''},
+                { from:'assets/img', to:'img'}
             ]
         }), 
     ],

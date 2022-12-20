@@ -1,9 +1,15 @@
+import sys
 import uuid
 import os.path
+
+if sys.version_info.major == 3 and sys.version_info.minor >= 10:
+    import collections
+    setattr(collections, "MutableMapping", collections.abc.MutableMapping)
 
 from tornado.options import define, options
 from tornado.ioloop import IOLoop
 from app.main import create_app
+
 
 base_dir = os.path.dirname(__file__)
 

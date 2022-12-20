@@ -1,12 +1,12 @@
 import tornado.web
 
-from .handlers.index import IndexHandler
+from .handlers.http import HttpHandler
 from .handlers.websocket import WebsocketHandler
 
 
 def create_app(settings):
     handlers = [
-        (r'/', IndexHandler),
+        (r'/', HttpHandler),
         (r'/ws', WebsocketHandler)
     ]
 
