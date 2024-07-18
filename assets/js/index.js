@@ -14,7 +14,7 @@ function connectionManager() {
         privateKey: null,
     }
 
-    const displayTerminal = () => {
+    const toggleTerminalDisplay = () => {
         document.querySelector('body').classList.toggle('xterm_display')
         document.querySelector('.terminal-wrapper').classList.toggle('d-none')
         document.querySelector('.xterm-viewport').classList.toggle('xterm_display')
@@ -80,7 +80,7 @@ function connectionManager() {
                 this.$refs.container.style.display = 'none'
                 xterm.open(this.$refs.terminal)
 
-                displayTerminal()
+                toggleTerminalDisplay()
 
                 setTimeout(() => {
                     xtermFitAddon.fit()
@@ -98,7 +98,7 @@ function connectionManager() {
             }
 
             websocket.onclose = (event) => {
-                display()
+                toggleTerminalDisplay()
                 xterm.dispose()
 
                 this.$refs.container.style.display = 'block'
