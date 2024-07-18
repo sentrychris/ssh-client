@@ -23,8 +23,12 @@ $ npm run build
 ## Run
 
 ```sh
-$ python manage.py run
+$ python manage.py run --address=<ip-address> --port=<port>
 ```
+
+Defaults:
+- IP: 0.0.0.0
+- Port: 4500
 
 ## Screenshots
 
