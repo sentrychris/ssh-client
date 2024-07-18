@@ -1,11 +1,11 @@
 import Alpine from 'alpinejs'
-import {Terminal} from 'xterm'
-import {FitAddon} from 'xterm-addon-fit'
+import { Terminal } from 'xterm'
+import { FitAddon } from 'xterm-addon-fit'
 
 window.Alpine = Alpine
-window.init = init
+window.connectionManager = connectionManager
 
-function init() {
+function connectionManager() {
     const connection = {
         hostname: '',
         port: '22',
@@ -14,8 +14,9 @@ function init() {
         privateKey: null,
     }
 
-    const display = () => {
+    const displayTerminal = () => {
         document.querySelector('body').classList.toggle('xterm_display')
+        document.querySelector('.terminal-wrapper').classList.toggle('d-none')
         document.querySelector('.xterm-viewport').classList.toggle('xterm_display')
     }
 
@@ -28,7 +29,7 @@ function init() {
             loading: null,
         },
 
-        async connect() {
+        async initialize() {
             this.setStatus('ok', 'Requesting new connection.', true)
 
             const url = '/'
@@ -47,16 +48,16 @@ function init() {
                     body
                 })
 
-                const payload = await response.json()
-                await this.process(payload)
+                const worker = await response.json()
+                await this.connect(worker)
             } catch (err) {
                 console.log(err)
             }
         },
 
-        async process(response) {
-            if (!response.id) {
-                this.setStatus('ok', response.status)
+        async connect(worker) {
+            if (!worker.id) {
+                this.setStatus('ok', worker.status)
                 return
             }
 
@@ -64,7 +65,7 @@ function init() {
 
             const wsUrl = window.location.href.replace('http', 'ws')
             const join = (wsUrl[wsUrl.length - 1] === '/' ? '' : '/')
-            const url = wsUrl + join + 'ws?id=' + response.id
+            const url = wsUrl + join + 'ws?id=' + worker.id
 
             const websocket = new WebSocket(url)
 
@@ -72,16 +73,20 @@ function init() {
                 cursorBlink: true
             })
 
-            const xdisplay = new FitAddon()
-            xterm.loadAddon(xdisplay)
+            const xtermFitAddon = new FitAddon()
+            xterm.loadAddon(xtermFitAddon)
 
             websocket.onopen = () => {
                 this.$refs.container.style.display = 'none'
                 xterm.open(this.$refs.terminal)
 
-                display()
+                displayTerminal()
 
-                xdisplay.fit()
+                setTimeout(() => {
+                    xtermFitAddon.fit()
+                }, 50);
+
+                window.addEventListener('resize', () => xtermFitAddon.fit())
             }
 
             xterm.onData((data) => {

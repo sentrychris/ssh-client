@@ -17,14 +17,19 @@ body {
 }
 
 .xterm_display {
+    background: #000000;
     overflow-y: hidden !important;
 }
 
-.file-control {
-    background-color: transparent;
-    background-clip: padding-box;
-    border: none;
-    padding-left: 0;
+.terminal-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100vw; /* Full viewport width */
+    height: 100vh; /* Full viewport height */
+}
+
+#terminal {
+    flex-grow: 1; /* Allows the terminal to grow and fill available space */
 }
 
 .border-radius-5 {
