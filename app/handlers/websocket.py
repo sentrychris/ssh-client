@@ -117,7 +117,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
         """
 
         worker = self.worker_ref()
-        worker.data_to_dst.append(message)
+        worker.data_to_dest.append(message)
         worker.on_write()
 
 

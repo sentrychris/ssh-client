@@ -3,7 +3,7 @@ import os.path
 
 from tornado.options import define, options, parse_command_line
 from tornado.ioloop import IOLoop
-from app.main import create_app
+from app import create_app
 
 # Define base directory
 base_dir = os.path.dirname(__file__)

@@ -18,7 +18,7 @@ class Worker(object):
         dest_addr (str): The destination address for the SSH connection.
         fd (int): The file descriptor for the SSH channel.
         id (str): Unique identifier for the worker instance.
-        data_to_dst (list of str): Buffer to hold data that needs to be sent to the SSH channel.
+        data_to_dest (list of str): Buffer to hold data that needs to be sent to the SSH channel.
         handler (WebSocketHandler | None): The websocket handler associated with the worker.
         mode (int): The IOLoop mode for handling the worker's file descriptor (READ or WRITE).
 
@@ -47,7 +47,7 @@ class Worker(object):
         self.dest_addr = dest_addr
         self.fd = channel.fileno()
         self.id = str(id(self))
-        self.data_to_dst = []
+        self.data_to_dest = []
         self.handler = None
         self.mode = IOLoop.READ
 
@@ -122,10 +122,10 @@ class Worker(object):
         Updates the IOLoop handler mode based on whether more data needs to be sent or read.
         """
 
-        if not self.data_to_dst:
+        if not self.data_to_dest:
             return
 
-        data = ''.join(self.data_to_dst)
+        data = ''.join(self.data_to_dest)
 
         try:
             sent = self.channel.send(data)
@@ -135,10 +135,10 @@ class Worker(object):
             else:
                 self.update_handler(IOLoop.WRITE)
         else:
-            self.data_to_dst = []
+            self.data_to_dest = []
             data = data[sent:]
             if data:
-                self.data_to_dst.append(data)
+                self.data_to_dest.append(data)
                 self.update_handler(IOLoop.WRITE)
             else:
                 self.update_handler(IOLoop.READ)
