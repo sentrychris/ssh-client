@@ -20,7 +20,7 @@ def create_app(settings: dict):
 
     Example:
         settings = {
-            'debug': True,
+            'debug': False,
             'static_path': '/path/to/static',
             'template_path': '/path/to/templates'
         }

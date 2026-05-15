@@ -27,7 +27,7 @@ async def run():
         'static_path': os.path.join(base_dir, 'public'),
         'cookie_secret': uuid.uuid1().hex,
         'xsrf_cookies': False,
-        'debug': True
+        'debug': False
     })
 
     # Start the tornado server

@@ -20,7 +20,7 @@ That said, you should treat any hosted instance the same way you'd treat any
 SSH gateway: anyone with shell on the box can dump process memory or modify
 the source. **Don't paste production keys into a wssh instance you don't
 operate yourself.** For sensitive use, deploy your own copy from this
-repository and make sure `'debug': True` is flipped to `False` in `ssh.py`
+repository and make sure `'debug'` is set to `False` in `ssh.py`
 before exposing it to the network.
 
 ## Installation
