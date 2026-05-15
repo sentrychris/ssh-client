@@ -75,6 +75,10 @@ body {
     font-feature-settings: "cv11", "ss01";
 }
 
+.xterm .xterm-viewport {
+    background-color: rgb(9, 9, 11) !important;
+}
+
 [x-cloak] { display: none !important; }
 .is-hidden { display: none !important; }
 

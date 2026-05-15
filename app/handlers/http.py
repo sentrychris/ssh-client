@@ -171,7 +171,7 @@ class HttpHandler(BaseHandler):
         except paramiko.BadAuthenticationType:
             raise ValueError('Authentication failed.')
 
-        channel = ssh.invoke_shell(term='xterm')
+        channel = ssh.invoke_shell(term='xterm-256color')
         channel.setblocking(False)
 
         worker = Worker(ssh, channel, dest_addr)
