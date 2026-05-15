@@ -6,6 +6,11 @@ import { FitAddon } from '@xterm/addon-fit'
 window.Alpine = Alpine
 window.connectionManager = connectionManager
 
+function getCookie(name) {
+    const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'))
+    return m ? decodeURIComponent(m[1]) : null
+}
+
 function connectionManager() {
     const connection = {
         hostname: '',
@@ -57,10 +62,14 @@ function connectionManager() {
 
             try {
                 const response = await fetch(url, {
-                    mode: 'cors',
+                    mode: 'same-origin',
                     credentials: 'same-origin',
                     method,
-                    body
+                    body,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-XSRFToken': getCookie('_xsrf') || '',
+                    },
                 })
 
                 const worker = await response.json()

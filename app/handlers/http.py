@@ -1,4 +1,7 @@
 import io
+import ipaddress
+import logging
+import os
 import socket
 import paramiko
 import tornado
@@ -7,6 +10,39 @@ from typing import Type, Union, Optional
 
 from ..worker import Worker
 from .base import BaseHandler, workers, recycle
+
+
+audit = logging.getLogger('wssh.audit')
+
+
+# Set WSSH_ALLOW_PRIVATE_TARGETS=1 for local dev (so you can ssh to mock_sshd
+# at 127.0.0.1). Off in prod blocks RFC1918 / loopback / link-local /
+# multicast / etc., which is the SSRF surface for a public hosted instance.
+_ALLOW_PRIVATE_TARGETS = os.environ.get(
+    'WSSH_ALLOW_PRIVATE_TARGETS', '').lower() in ('1', 'true', 'yes')
+
+
+def _is_safe_target(hostname):
+    """Resolves ``hostname`` and returns False if any A/AAAA record points at
+    a private/loopback/link-local/multicast/reserved address. There is a
+    time-of-check/time-of-use gap (paramiko re-resolves), but this catches
+    the obvious SSRF cases (cloud metadata, internal services)."""
+
+    if _ALLOW_PRIVATE_TARGETS:
+        return True
+    try:
+        infos = socket.getaddrinfo(hostname, None, type=socket.SOCK_STREAM)
+    except socket.gaierror:
+        return False
+    for _, _, _, _, sockaddr in infos:
+        try:
+            ip = ipaddress.ip_address(sockaddr[0])
+        except ValueError:
+            continue
+        if (ip.is_private or ip.is_loopback or ip.is_link_local
+                or ip.is_multicast or ip.is_reserved or ip.is_unspecified):
+            return False
+    return True
 
 
 # Define a type alias for the key classes
@@ -139,6 +175,9 @@ class HttpHandler(BaseHandler):
         parsed_key = self.get_parsed_key(private_key, password) if private_key else None
 
         args = (hostname, port, username, password, parsed_key)
+        # Cache for the audit log in post() - credentials are NEVER logged,
+        # but hostname/port/user/auth-method are.
+        self._connect_args = args
 
         return args
 
@@ -161,6 +200,11 @@ class HttpHandler(BaseHandler):
         args = self.get_post_args()
         dest_addr = '{}:{}'.format(*args[:2])
 
+        if not _is_safe_target(args[0]):
+            raise ValueError(
+                'Target host not allowed (private, loopback, and link-local '
+                'addresses are blocked).')
+
         try:
             ssh.connect(*args, timeout=6)
         except socket.error:
@@ -180,18 +224,19 @@ class HttpHandler(BaseHandler):
     def get(self):
         """
         Handles HTTP GET requests. Renders the connection index page.
+        Touches ``self.xsrf_token`` so Tornado sets the ``_xsrf`` cookie on
+        the page load - the JS reads it and sends ``X-XSRFToken`` on POST.
         """
 
+        self.xsrf_token  # noqa: B018 - force the cookie to be issued
         self.render('index.html')
 
 
     def post(self):
         """
         Handles POST requests. Attempts to establish an SSH connection and returns the
-        worker ID and status.
-
-        Returns:
-            dict: A dictionary containing `id` (worker ID) and `status` (status message).
+        worker ID and status. Logs the attempt to the audit log (without
+        credentials).
         """
 
         worker_id = None
@@ -204,5 +249,20 @@ class HttpHandler(BaseHandler):
         else:
             worker_id = worker.id
             workers[worker_id] = worker
+
+        args = getattr(self, '_connect_args', None)
+        if args:
+            target = '{}:{}'.format(args[0], args[1])
+            user = args[2]
+            auth = 'key' if args[4] else 'password'
+        else:
+            target = user = auth = '?'
+
+        if status:
+            audit.info('connect ip=%s target=%s user=%s auth=%s status=fail reason=%r',
+                       self.request.remote_ip, target, user, auth, status)
+        else:
+            audit.info('connect ip=%s target=%s user=%s auth=%s status=ok worker=%s',
+                       self.request.remote_ip, target, user, auth, worker_id)
 
         self.write(dict(id=worker_id, status=status))

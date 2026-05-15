@@ -1,8 +1,20 @@
 import json
+import os
 import weakref
+from urllib.parse import urlparse
+
 import tornado
 
 from .base import workers
+
+
+# Comma-separated extra origins (e.g. "https://wssh.app,https://staging.wssh.app").
+# Same-origin (where the Origin host matches the request Host) is always allowed.
+_ALLOWED_ORIGIN_HOSTS = {
+    urlparse(o.strip()).netloc.lower()
+    for o in os.environ.get('WSSH_ALLOWED_ORIGINS', '').split(',')
+    if o.strip()
+}
 
 
 class WebsocketHandler(tornado.websocket.WebSocketHandler):
@@ -53,16 +65,21 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
 
     def check_origin(self, origin: str):
         """
-        Checks whether the websocket connection origin is allowed.
-
-        Args:
-            origin (str): The origin of the websocket connection.
-
-        Returns:
-            bool: Always returns True, allowing connections from any origin.
+        Restricts WebSocket connections to same-origin (or a configured
+        allow-list via the ``WSSH_ALLOWED_ORIGINS`` env var). Prevents
+        Cross-Site WebSocket Hijacking; the previous "always True" was the
+        WS equivalent of CORS wide-open.
         """
 
-        return True
+        try:
+            origin_host = urlparse(origin).netloc.lower()
+        except Exception:
+            return False
+        if not origin_host:
+            return False
+        if origin_host == self.request.host.lower():
+            return True
+        return origin_host in _ALLOWED_ORIGIN_HOSTS
 
 
     def get_addr(self):

@@ -1,7 +1,7 @@
 @import "@xterm/xterm/css/xterm.css";
 
 /* =============================================================
-   Design tokens — shadcn/ui zinc palette (dark)
+   Design tokens (dark)
    ============================================================= */
 :root {
     /* Surface */
@@ -337,7 +337,7 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* =============================================================
-   Terminal — full viewport
+   Terminal full viewport
    xterm.js manages the inner element sizes (canvas, viewport,
    screen) based on font metrics × rows × cols. Only constrain the
    outer wrapper and the .xterm root; let the addon's fit() do the
