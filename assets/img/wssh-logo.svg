@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 160" width="560" height="160" role="img" aria-label="wssh">
+  <title>wssh</title>
+  <style>
+    .wordmark { fill: #09090b; }
+    @media (prefers-color-scheme: dark) {
+      .wordmark { fill: #fafafa; }
+    }
+  </style>
+
+  <!-- mark -->
+  <rect x="16" y="16" width="128" height="128" rx="28" fill="#09090b"/>
+  <path d="M44 52 L63 108 L80 74 L97 108 L116 52"
+        fill="none" stroke="#fafafa" stroke-width="11"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="69" y="118" width="22" height="6" rx="2" fill="#fafafa"/>
+
+  <!-- wordmark -->
+  <text class="wordmark"
+        x="176" y="106"
+        font-family="'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+        font-size="80" font-weight="600" letter-spacing="-2">wssh</text>
+</svg>

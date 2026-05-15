@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="wssh">
+  <title>wssh</title>
+  <rect width="256" height="256" rx="56" fill="#09090b"/>
+  <path d="M56 72 L94 184 L128 116 L162 184 L200 72"
+        fill="none" stroke="#fafafa" stroke-width="20"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="106" y="204" width="44" height="12" rx="3" fill="#fafafa"/>
+</svg>

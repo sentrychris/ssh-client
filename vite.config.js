@@ -9,7 +9,8 @@ export default defineConfig({
   plugins: [
     viteStaticCopy({
       targets: [
-        { src: 'views/index.html', dest: '.', rename: { stripBase: 1 } }
+        { src: 'views/index.html', dest: '.', rename: { stripBase: 1 } },
+        { src: 'assets/img/*.svg', dest: 'img', rename: { stripBase: 2 } }
       ]
     })
   ],

@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SSH</title>
+    <title>wssh - Connect to a remote shell.</title>
+    <link rel="icon" type="image/svg+xml" href="../static/img/wssh-mark.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="../static/css/main.min.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
@@ -14,8 +15,8 @@
         <main class="page" x-ref="container">
             <article class="card">
                 <header class="card__header">
-                    <h1 class="card__title">SSH Connection</h1>
-                    <p class="card__description">Connect to a remote shell over WebSocket.</p>
+                    <h1 class="card__title">wssh</h1>
+                    <p class="card__description">Connect to a remote shell.</p>
                 </header>
                 <div class="card__body">
                     <form id="initialize" class="form" @submit.prevent="initialize">
@@ -26,7 +27,7 @@
                                     class="input"
                                     type="text"
                                     name="hostname"
-                                    placeholder="example.com"
+                                    placeholder="127.0.0.1"
                                     autocomplete="off"
                                     x-model="connection.hostname">
                             </div>
