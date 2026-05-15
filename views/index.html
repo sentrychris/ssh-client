@@ -2,84 +2,86 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>SSH</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="../static/css/main.min.css" rel="stylesheet" type="text/css"/>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
-          integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 </head>
 <body>
     <div id="app" x-data="connectionManager" class="app">
-        <div class="container" x-ref="container">
-            <section class="panel">
-                <header class="panel__header">
-                    <i class="fa fa-cogs"></i> Configure SSH Connection
+        <main class="page" x-ref="container">
+            <article class="card">
+                <header class="card__header">
+                    <h1 class="card__title">SSH Connection</h1>
+                    <p class="card__description">Connect to a remote shell over WebSocket.</p>
                 </header>
-                <div class="panel__body">
-                    <div class="status">
-                        <div id="status" class="status__text--error"></div>
-                    </div>
-                    <form id="initialize" @submit.prevent="initialize">
-                        <div class="form__row">
-                            <div class="form__field">
-                                <label for="Hostname" class="form__label">Hostname</label>
+                <div class="card__body">
+                    <form id="initialize" class="form" @submit.prevent="initialize">
+                        <div class="field-row">
+                            <div class="field field--span-2">
+                                <label for="Hostname" class="label">Hostname</label>
                                 <input id="Hostname"
                                     class="input"
                                     type="text"
                                     name="hostname"
+                                    placeholder="example.com"
+                                    autocomplete="off"
                                     x-model="connection.hostname">
                             </div>
-                            <div class="form__field">
-                                <label for="Port" class="form__label">Port</label>
-                                <input
-                                        id="Port"
-                                        class="input"
-                                        type="text"
-                                        name="port"
-                                        x-model="connection.port">
-                            </div>
-                        </div>
-                        <div class="form__row">
-                            <div class="form__field">
-                                <label for="Username" class="form__label">Username</label>
-                                <input
-                                        id="Username"
-                                        class="input"
-                                        type="text"
-                                        name="username"
-                                        x-model="connection.username">
-                            </div>
-                            <div class="form__field">
-                                <label for="Private_Key" class="form__label">Private Key</label>
-                                <input id="Private_Key"
+                            <div class="field">
+                                <label for="Port" class="label">Port</label>
+                                <input id="Port"
                                     class="input"
-                                    type="file"
-                                    name="privatekey"
-                                    x-model="connection.privateKey">
+                                    type="text"
+                                    name="port"
+                                    placeholder="22"
+                                    autocomplete="off"
+                                    x-model="connection.port">
                             </div>
                         </div>
-                        <div class="form__row">
-                            <div class="form__field">
-                                <label for="Password" class="form__label">Password</label>
-                                <input id="Password"
-                                    class="input"
-                                    type="password"
-                                    name="password"
-                                    placeholder=""
-                                    x-model="connection.password">
-                            </div>
-                            <div class="form__field"></div>
+                        <div class="field">
+                            <label for="Username" class="label">Username</label>
+                            <input id="Username"
+                                class="input"
+                                type="text"
+                                name="username"
+                                placeholder="root"
+                                autocomplete="off"
+                                x-model="connection.username">
                         </div>
-                        <div class="form__row form__row--actions">
-                            <div>
-                                <button type="submit" class="button button--primary">Connect
-                                    <i x-show="state.loading" class="fa fa-spinner fa-spin"></i>
-                                </button>
-                            </div>
+                        <div class="field">
+                            <label for="Password" class="label">Password</label>
+                            <input id="Password"
+                                class="input"
+                                type="password"
+                                name="password"
+                                autocomplete="off"
+                                x-model="connection.password">
                         </div>
+                        <div class="field">
+                            <label for="Private_Key" class="label">Private Key <span class="label__hint">(optional)</span></label>
+                            <input id="Private_Key"
+                                class="input input--file"
+                                type="file"
+                                name="privatekey"
+                                x-model="connection.privateKey">
+                        </div>
+                        <div class="status"
+                             x-show="state.message"
+                             :class="state.status === 'error' ? 'status--error' : 'status--ok'"
+                             x-text="state.message"
+                             x-cloak></div>
+                        <button type="submit" class="button button--primary" :disabled="state.loading">
+                            <span x-show="!state.loading">Connect</span>
+                            <span x-show="state.loading" class="button__spinner" aria-hidden="true"></span>
+                            <span x-show="state.loading">Connecting</span>
+                        </button>
                     </form>
                 </div>
-            </section>
-        </div>
+            </article>
+        </main>
 
         <div class="terminal-wrapper is-hidden">
             <div id="terminal" x-ref="terminal"></div>

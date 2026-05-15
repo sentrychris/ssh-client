@@ -1,3 +1,4 @@
+import json
 import weakref
 import tornado
 
@@ -112,13 +113,29 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
         """
         Handles incoming messages from the websocket.
 
-        Args:
-            message (str): The message received from the websocket.
+        Messages are JSON envelopes:
+        - {"data": "..."}            keystrokes / paste forwarded to the SSH PTY
+        - {"resize": [cols, rows]}   PTY window-change request
         """
 
         worker = self.worker_ref()
-        worker.data_to_dest.append(message)
-        worker.on_write()
+        if not worker:
+            return
+
+        try:
+            msg = json.loads(message)
+        except (ValueError, TypeError):
+            return
+
+        if not isinstance(msg, dict):
+            return
+
+        if 'data' in msg:
+            worker.data_to_dest.append(msg['data'])
+            worker.on_write()
+        elif 'resize' in msg:
+            cols, rows = msg['resize']
+            worker.resize_pty(int(cols), int(rows))
 
 
     def on_close(self):

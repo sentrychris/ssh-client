@@ -16,9 +16,7 @@ function connectionManager() {
     }
 
     const toggleTerminalDisplay = () => {
-        document.querySelector('body').classList.toggle('xterm_display')
         document.querySelector('.terminal-wrapper').classList.toggle('is-hidden')
-        document.querySelector('.xterm-viewport').classList.toggle('xterm_display')
     }
 
     return {
@@ -71,27 +69,46 @@ function connectionManager() {
             const websocket = new WebSocket(url)
 
             const xterm = new Terminal({
-                cursorBlink: true
+                cursorBlink: true,
+                fontFamily: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                fontSize: 13,
+                theme: {
+                    background: '#09090b',
+                    foreground: '#e4e4e7',
+                    cursor: '#fafafa',
+                    cursorAccent: '#09090b',
+                    selectionBackground: 'rgba(255, 255, 255, 0.18)',
+                },
             })
 
             const xtermFitAddon = new FitAddon()
             xterm.loadAddon(xtermFitAddon)
 
+            const fit = () => {
+                try { xtermFitAddon.fit() } catch (e) { /* container not ready */ }
+            }
+
+            const resizeObserver = new ResizeObserver(fit)
+
             websocket.onopen = () => {
                 this.$refs.container.style.display = 'none'
+                toggleTerminalDisplay()
                 xterm.open(this.$refs.terminal)
 
-                toggleTerminalDisplay()
-
-                setTimeout(() => {
-                    xtermFitAddon.fit()
-                }, 50);
-
-                window.addEventListener('resize', () => xtermFitAddon.fit())
+                requestAnimationFrame(() => {
+                    fit()
+                    resizeObserver.observe(this.$refs.terminal)
+                })
             }
 
             xterm.onData((data) => {
-                websocket.send(data)
+                websocket.send(JSON.stringify({ data }))
+            })
+
+            xterm.onResize(({ cols, rows }) => {
+                if (websocket.readyState === WebSocket.OPEN) {
+                    websocket.send(JSON.stringify({ resize: [cols, rows] }))
+                }
             })
 
             websocket.onmessage = (message) => {
@@ -99,11 +116,12 @@ function connectionManager() {
             }
 
             websocket.onclose = (event) => {
+                resizeObserver.disconnect()
                 toggleTerminalDisplay()
                 xterm.dispose()
 
                 this.$refs.container.style.display = 'block'
-                this.setStatus('ok', event.reason)
+                this.setStatus('ok', event.reason || 'Connection closed.')
             };
 
             websocket.onerror = event => {

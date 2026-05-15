@@ -144,6 +144,18 @@ class Worker(object):
                 self.update_handler(IOLoop.READ)
 
 
+    def resize_pty(self, cols: int, rows: int):
+        """
+        Forwards a window-change request to the SSH PTY so commands like
+        ``top`` re-render at the client terminal's actual dimensions.
+        """
+
+        try:
+            self.channel.resize_pty(width=cols, height=rows)
+        except (OSError, IOError):
+            pass
+
+
     def close(self):
         """
         Closes the worker, SSH channel, and SSH client.
