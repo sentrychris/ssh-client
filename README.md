@@ -6,7 +6,7 @@ A small and simple web-based SSH client. Built with [Paramiko](https://www.param
 
 <p align="center">
   <img src="docs/wssh-login.png" alt="Login screen" width="49%">
-  <img src="docs/wssh-web.png" alt="Terminal session" width="49%">
+  <img src="docs/wssh-htop.png" alt="Terminal session" width="49%">
 </p>
 
 ## Installation
