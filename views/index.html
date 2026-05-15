@@ -69,7 +69,7 @@
                                 class="input input--file"
                                 type="file"
                                 name="privatekey"
-                                x-model="connection.privateKey">
+                                @change="connection.privateKey = $event.target.files[0] || null">
                         </div>
                         <div class="status"
                              x-show="state.message"

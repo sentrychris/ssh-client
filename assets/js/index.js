@@ -34,10 +34,9 @@ function connectionManager() {
             const url = '/'
             const method = 'POST'
 
-            // Alpine x-model on <input type="file"> may give us a File or a
-            // FileList depending on version; normalise to File-or-null.
-            let pkFile = connection.privateKey
-            if (pkFile instanceof FileList) pkFile = pkFile.item(0)
+            // privateKey is a File set by the file input's @change handler,
+            // or null if no file was picked.
+            const pkFile = connection.privateKey
 
             if (pkFile && pkFile.size > 16384) {
                 this.setStatus('error', 'Your key size exceeds the maximum limit.')
