@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>wssh - Connect to a remote shell.</title>
+    <title>wssh - Connect to any remote shell.</title>
     <link rel="icon" type="image/svg+xml" href="../static/img/wssh-mark.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,8 +15,10 @@
         <main class="page" x-ref="container">
             <article class="card">
                 <header class="card__header">
-                    <h1 class="card__title">wssh</h1>
-                    <p class="card__description">Connect to a remote shell.</p>
+                    <h1 class="card__title">
+                        <img src="../static/img/wssh-logo.svg" alt="wssh" class="card__logo" width="180" height="52">
+                    </h1>
+                    <p class="card__description">Connect to any remote shell.</p>
                 </header>
                 <div class="card__body">
                     <form id="initialize" class="form" @submit.prevent="initialize">
@@ -82,6 +84,13 @@
                     </form>
                 </div>
             </article>
+
+            <a class="sb-item sb-link" href="https://github.com/sentrychris/wssh" target="_blank" rel="noopener">
+                <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" fill="currentColor">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38v-1.32c-2.22.48-2.69-1.07-2.69-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.05-.49.05-.49.81.06 1.23.83 1.23.83.72 1.23 1.88.88 2.34.67.07-.52.28-.88.51-1.08-1.77-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.11 0 0 .67-.22 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.91.08 2.11.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+                sentrychris/wssh
+            </a>
         </main>
 
         <div class="terminal-wrapper is-hidden">

@@ -95,13 +95,33 @@ body {
 .page {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: var(--space-4);
     padding: var(--space-6) var(--space-4);
     /* subtle radial vignette for depth, very common in dark shadcn pages */
     background:
         radial-gradient(ellipse at top, rgb(255 255 255 / 0.02), transparent 60%),
         var(--background);
+}
+
+.sb-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--text-xs);
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.sb-link {
+    color: var(--muted-foreground);
+    transition: color 120ms ease;
+}
+
+.sb-link:hover {
+    color: var(--foreground);
 }
 
 /* =============================================================
@@ -119,6 +139,7 @@ body {
 
 .card__header {
     padding: var(--space-6) var(--space-6) var(--space-2);
+    text-align: center;
 }
 
 .card__title {
@@ -127,6 +148,13 @@ body {
     font-weight: 200;
     line-height: var(--leading-tight);
     letter-spacing: -0.01em;
+}
+
+.card__logo {
+    display: block;
+    margin: 0 auto;
+    width: 180px;
+    height: auto;
 }
 
 .card__description {
