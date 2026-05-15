@@ -4,6 +4,11 @@
 
 A small and simple web-based SSH client. Built with [Paramiko](https://www.paramiko.org/), [Tornado](https://www.tornadoweb.org/en/stable/), [XtermJS](https://xtermjs.org/) and [Alpine.js](https://alpinejs.dev/).
 
+<p align="center">
+  <img src="docs/wssh-login.png" alt="Login screen" width="49%">
+  <img src="docs/wssh-web.png" alt="Terminal session" width="49%">
+</p>
+
 ## Installation
 
 Requires Python >= 3.10. Uses the stdlib `venv` module and `pip`; no extra
