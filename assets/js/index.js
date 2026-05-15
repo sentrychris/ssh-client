@@ -120,8 +120,9 @@ function connectionManager() {
                 toggleTerminalDisplay()
                 xterm.dispose()
 
-                this.$refs.container.style.display = 'block'
+                this.$refs.container.style.display = ''
                 this.setStatus('ok', event.reason || 'Connection closed.')
+                this.clearStatusAfter(6000)
             };
 
             websocket.onerror = event => {
@@ -130,9 +131,22 @@ function connectionManager() {
         },
 
         setStatus(status, message, loading = false) {
+            if (this._statusTimer) {
+                clearTimeout(this._statusTimer)
+                this._statusTimer = null
+            }
             this.state.status = status
             this.state.message = message
             this.state.loading = loading
+        },
+
+        clearStatusAfter(ms) {
+            if (this._statusTimer) clearTimeout(this._statusTimer)
+            this._statusTimer = setTimeout(() => {
+                this.state.status = ''
+                this.state.message = ''
+                this._statusTimer = null
+            }, ms)
         }
     }
 }
