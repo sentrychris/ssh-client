@@ -24,21 +24,18 @@ class HttpHandler(BaseHandler):
     """
 
 
-    def get_private_key(self):
+    @staticmethod
+    def get_private_key(body):
         """
-        Retrieves and decodes the private key from the request files.
-
-        Returns:
-            str on None: The decoded private key as a UTF-8 string, or None if the private key
-            is not found or an error occurs.
+        Reads the optional private key from the JSON request body. The client
+        sends it as a string under the ``privateKey`` field (it cannot use a
+        multipart upload alongside the rest of the JSON form).
         """
 
-        try:
-            data = self.request.files.get('privatekey')[0]['body']
-        except TypeError:
-            return
-
-        return data.decode('utf-8')
+        pk = body.get('privateKey')
+        if isinstance(pk, str) and pk.strip():
+            return pk
+        return None
 
 
     @staticmethod
@@ -138,7 +135,7 @@ class HttpHandler(BaseHandler):
         username = req['username']
         password = req['password']
 
-        private_key = self.get_private_key()
+        private_key = self.get_private_key(req)
         parsed_key = self.get_parsed_key(private_key, password) if private_key else None
 
         args = (hostname, port, username, password, parsed_key)

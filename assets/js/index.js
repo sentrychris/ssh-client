@@ -33,11 +33,28 @@ function connectionManager() {
 
             const url = '/'
             const method = 'POST'
-            const body = JSON.stringify(connection)
 
-            if (connection.privateKey && connection.privateKey.size > 16384) {
+            // Alpine x-model on <input type="file"> may give us a File or a
+            // FileList depending on version; normalise to File-or-null.
+            let pkFile = connection.privateKey
+            if (pkFile instanceof FileList) pkFile = pkFile.item(0)
+
+            if (pkFile && pkFile.size > 16384) {
                 this.setStatus('error', 'Your key size exceeds the maximum limit.')
+                return
             }
+
+            // File objects don't survive JSON.stringify (no enumerable
+            // properties), so read the bytes as text and send as a string.
+            const privateKey = pkFile ? await pkFile.text() : null
+
+            const body = JSON.stringify({
+                hostname: connection.hostname,
+                port: connection.port,
+                username: connection.username,
+                password: connection.password,
+                privateKey,
+            })
 
             try {
                 const response = await fetch(url, {
