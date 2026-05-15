@@ -83,6 +83,7 @@ function connectionManager() {
             const url = wsUrl + join + 'ws?id=' + worker.id
 
             const websocket = new WebSocket(url)
+            websocket.binaryType = 'arraybuffer'
 
             const xterm = new Terminal({
                 cursorBlink: true,
@@ -128,7 +129,7 @@ function connectionManager() {
             })
 
             websocket.onmessage = (message) => {
-                xterm.write(message.data)
+                xterm.write(new Uint8Array(message.data))
             }
 
             websocket.onclose = (event) => {

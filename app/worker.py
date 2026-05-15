@@ -111,7 +111,7 @@ class Worker(object):
                 return
 
             try:
-                self.handler.write_message(data)
+                self.handler.write_message(data, binary=True)
             except WebSocketClosedError:
                 self.close()
 
