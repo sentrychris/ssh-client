@@ -1,42 +1,37 @@
 # Web SSH client.
 
+A small and simple web-based SSH client. Built with [Paramiko](https://www.paramiko.org/), [Tornado](https://www.tornadoweb.org/en/stable/), [XtermJS](https://xtermjs.org/) and [Alpine.js](https://alpinejs.dev/)
+
 ## Installation
 
-(Optional) Create virtual environment
+Requires Python >= 3.10. Uses the stdlib `venv` module and `pip`; no extra
+tooling needed.
 
-Install dependencies
-
+Clone the repository and create your venv:
 ```sh
-$ pip install -r requirements.txt
+$ git clone https://github.com/sentrychris/ssh-client.git
+$ cd ssh-client
+$ python -m venv .venv
 ```
 
+Install Python dependencies:
+```sh
+$ pip install .
+```
+
+Install NPM dependencies:
 ```sh
 $ npm install
 ```
 
-Build
-
+Build:
 ```sh
 $ npm run build
 ```
 
-## Run
-
+Run:
 ```sh
-$ python manage.py run --address=<ip-address> --port=<port>
+$ python ssh.py --address=0.0.0.0 --port=4500
 ```
-
-Defaults:
-- IP: 0.0.0.0
-- Port: 4500
-
-## Screenshots
-
-![assets/tornamiko.png](assets/img/ui.png)
-
-![assets/tornamiko.png](assets/img/tornamiko.png)
-
-
-
 
 

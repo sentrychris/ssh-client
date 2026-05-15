@@ -1,0 +1,265 @@
+@import url("https://fonts.googleapis.com/css?family=Montserrat:400,700");
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap");
+
+@import "@xterm/xterm/css/xterm.css";
+
+/* =============================================================
+   Design tokens
+   ============================================================= */
+:root {
+    /* Colour */
+    --color-surface: #f5f5f5;
+    --color-card-bg: #ffffff;
+    --color-text: #212529;
+    --color-text-muted: #6c757d;
+    --color-text-danger: #dc3545;
+    --color-text-on-accent: #ffffff;
+    --color-accent: #28a745;
+    --color-accent-hover: #218838;
+    --color-accent-active: #1e7e34;
+    --color-border: #d0d4d9;
+    --color-input-border: #ced4da;
+    --color-input-focus: #80bdff;
+    --color-input-focus-shadow: rgba(0, 123, 255, 0.25);
+    --color-terminal-bg: #000000;
+
+    /* Spacing scale (4px base) */
+    --space-1: 0.25rem;  /* 4px */
+    --space-2: 0.5rem;   /* 8px */
+    --space-3: 0.75rem;  /* 12px */
+    --space-4: 1rem;     /* 16px */
+    --space-5: 1.5rem;   /* 24px */
+    --space-6: 2rem;     /* 32px */
+
+    /* Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+
+    /* Typography */
+    --font-family-base: "Montserrat", "Lato", -apple-system, BlinkMacSystemFont,
+        "Segoe UI", Roboto, sans-serif;
+    --font-size-base: 1rem;
+    --font-size-sm: 0.875rem;
+    --font-size-lg: 1.125rem;
+    --font-weight-regular: 400;
+    --font-weight-bold: 700;
+    --line-height-base: 1.5;
+
+    /* Shadow */
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.06);
+
+    /* Layout */
+    --container-max-width: 960px;
+}
+
+/* =============================================================
+   Base / reset
+   ============================================================= */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    overflow-x: hidden;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-base);
+    color: var(--color-text);
+    background: var(--color-surface);
+    display: flex;
+    flex-direction: column;
+}
+
+/* =============================================================
+   Layout helpers (project-owned, not framework)
+   ============================================================= */
+.app {
+    width: 100%;
+    height: 100%;
+}
+
+.container {
+    width: 100%;
+    max-width: var(--container-max-width);
+    margin: 0 auto;
+    padding: 0 var(--space-4);
+}
+
+.is-hidden {
+    display: none !important;
+}
+
+/* =============================================================
+   Panel / card
+   ============================================================= */
+.panel {
+    background: var(--color-card-bg);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    margin: var(--space-5) 0;
+    padding: var(--space-5);
+}
+
+.panel__header {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-lg);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: var(--space-4);
+}
+
+.panel__header .fa {
+    margin-right: var(--space-2);
+}
+
+.panel__body {
+    padding-top: var(--space-2);
+}
+
+/* =============================================================
+   Status message
+   ============================================================= */
+.status {
+    padding: var(--space-3) 0;
+    min-height: 1.5em;
+}
+
+.status__text--error {
+    color: var(--color-text-danger);
+}
+
+/* =============================================================
+   Form
+   ============================================================= */
+.form__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.form__row--single {
+    grid-template-columns: 1fr 1fr;
+}
+
+.form__row--actions {
+    grid-template-columns: 1fr;
+    margin-top: var(--space-5);
+}
+
+@media (max-width: 600px) {
+    .form__row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form__field {
+    display: flex;
+    flex-direction: column;
+}
+
+.form__label {
+    display: inline-block;
+    margin-bottom: var(--space-2);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+}
+
+.input {
+    display: block;
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    font-family: inherit;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    color: var(--color-text);
+    background-color: var(--color-card-bg);
+    border: 1px solid var(--color-input-border);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.input:focus {
+    outline: 0;
+    border-color: var(--color-input-focus);
+    box-shadow: 0 0 0 3px var(--color-input-focus-shadow);
+}
+
+.input[type="file"] {
+    padding: var(--space-2) var(--space-3);
+}
+
+/* =============================================================
+   Button
+   ============================================================= */
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2) var(--space-4);
+    font-family: inherit;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-base);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out,
+        border-color 0.15s ease-in-out,
+        box-shadow 0.15s ease-in-out;
+    user-select: none;
+}
+
+.button:focus {
+    outline: 0;
+    box-shadow: 0 0 0 3px var(--color-input-focus-shadow);
+}
+
+.button--primary {
+    color: var(--color-text-on-accent);
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.button--primary:hover {
+    background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+}
+
+.button--primary:active {
+    background-color: var(--color-accent-active);
+    border-color: var(--color-accent-active);
+}
+
+.button .fa {
+    margin-left: var(--space-2);
+}
+
+/* =============================================================
+   Terminal
+   ============================================================= */
+.terminal-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+    padding: var(--space-3);
+    background: var(--color-terminal-bg);
+}
+
+#terminal {
+    flex-grow: 1;
+}
+
+.xterm_display {
+    background: var(--color-terminal-bg);
+    overflow-y: hidden !important;
+}

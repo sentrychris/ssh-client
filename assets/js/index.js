@@ -1,6 +1,7 @@
+import '../css/app.css';
 import Alpine from 'alpinejs'
-import { Terminal } from 'xterm'
-import { FitAddon } from 'xterm-addon-fit'
+import { Terminal } from '@xterm/xterm'
+import { FitAddon } from '@xterm/addon-fit'
 
 window.Alpine = Alpine
 window.connectionManager = connectionManager
@@ -16,7 +17,7 @@ function connectionManager() {
 
     const toggleTerminalDisplay = () => {
         document.querySelector('body').classList.toggle('xterm_display')
-        document.querySelector('.terminal-wrapper').classList.toggle('d-none')
+        document.querySelector('.terminal-wrapper').classList.toggle('is-hidden')
         document.querySelector('.xterm-viewport').classList.toggle('xterm_display')
     }
 

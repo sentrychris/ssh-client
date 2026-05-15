@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "web-ssh-client"
+version = "0.0.1"
+description = "A simple python web-based SSH client."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Chris Rowles" },
+]
+dependencies = [
+    "paramiko==5.0.0",
+    "tornado==6.5.5",
+]
+
+[project.optional-dependencies]
+dev = []
+
+[project.urls]
+Homepage = "https://github.com/sentrychris/ssh-client"
+Repository = "https://github.com/sentrychris/ssh-client.git"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]

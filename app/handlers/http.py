@@ -12,7 +12,6 @@ from .base import BaseHandler, workers, recycle
 # Define a type alias for the key classes
 PrivateKey = Type[Union[
     paramiko.RSAKey,
-    paramiko.DSSKey,
     paramiko.ECDSAKey,
     paramiko.Ed25519Key
 ]]
@@ -87,7 +86,6 @@ class HttpHandler(BaseHandler):
         password = password.encode('utf-8') if password else None
 
         parsed_key = self.get_private_key_by_class(paramiko.RSAKey, private_key, password)\
-            or self.get_private_key_by_class(paramiko.DSSKey, private_key, password)\
             or self.get_private_key_by_class(paramiko.ECDSAKey, private_key, password)\
             or self.get_private_key_by_class(paramiko.Ed25519Key, private_key, password)
 

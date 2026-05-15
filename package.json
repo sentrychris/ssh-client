@@ -3,9 +3,10 @@
   "version": "0.0.1",
   "description": "A simple python web-based SSH client.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "build": "webpack",
-    "watch": "webpack --watch"
+    "build": "vite build",
+    "dev": "vite"
   },
   "repository": {
     "type": "git",
@@ -15,20 +16,12 @@
   "license": "MIT",
   "homepage": "https://github.com/sentrychris/ssh-client.git",
   "devDependencies": {
-    "copy-webpack-plugin": "^12.0.2",
-    "css-loader": "^7.1.2",
-    "file-loader": "^6.2.0",
-    "mini-css-extract-plugin": "^2.9.0",
-    "sass": "^1.77.8",
-    "sass-loader": "^14.2.1",
-    "style-loader": "^4.0.0",
-    "webpack": "^5.93.0",
-    "webpack-cli": "^5.1.4"
+    "vite": "^8.0.13",
+    "vite-plugin-static-copy": "^4.1.0"
   },
   "dependencies": {
-    "alpinejs": "^3.14.1",
-    "bootstrap": "^5.3.3",
-    "xterm": "^4.17.0",
-    "xterm-addon-fit": "^0.5.0"
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0",
+    "alpinejs": "^3.15.12"
   }
 }

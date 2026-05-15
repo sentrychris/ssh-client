@@ -7,83 +7,82 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
           integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 </head>
-<body class="d-flex flex-column h-100">
-    <div id="app" x-data="connectionManager" class="w-100 h-100">
+<body>
+    <div id="app" x-data="connectionManager" class="app">
         <div class="container" x-ref="container">
-            <section class="bg-white p-4 my-4 shadow border-radius-5">
-                <div class="card border-0">
-                    <div class="card-header bg-white text-muted">
-                        <i class="fa fa-cogs mr-2"></i> Configure SSH Connection
+            <section class="panel">
+                <header class="panel__header">
+                    <i class="fa fa-cogs"></i> Configure SSH Connection
+                </header>
+                <div class="panel__body">
+                    <div class="status">
+                        <div id="status" class="status__text--error"></div>
                     </div>
-                    <div class="card-body">
-                        <div class="message py-3">
-                            <div id="status" class="text-danger"></div>
-                        </div>
-                        <form id="initialize" @submit.prevent="initialize">
-                            <div class="form-group row">
-                                <div class="col-6">
-                                    <label for="Hostname" class="form-label">Hostname</label>
-                                    <input id="Hostname"
-                                        class="form-control"
+                    <form id="initialize" @submit.prevent="initialize">
+                        <div class="form__row">
+                            <div class="form__field">
+                                <label for="Hostname" class="form__label">Hostname</label>
+                                <input id="Hostname"
+                                    class="input"
+                                    type="text"
+                                    name="hostname"
+                                    x-model="connection.hostname">
+                            </div>
+                            <div class="form__field">
+                                <label for="Port" class="form__label">Port</label>
+                                <input
+                                        id="Port"
+                                        class="input"
                                         type="text"
-                                        name="hostname"
-                                        x-model="connection.hostname">
-                                </div>
-                                <div class="col-6">
-                                    <label for="Port" class="form-label">Port</label>
-                                    <input
-                                            id="Port"
-                                            class="form-control"
-                                            type="text"
-                                            name="port"
-                                            x-model="connection.port">
-                                </div>
+                                        name="port"
+                                        x-model="connection.port">
                             </div>
-                            <div class="form-group row mt-3">
-                                <div class="col-6">
-                                    <label for="Username" class="form-label">Username</label>
-                                    <input
-                                            id="Username"
-                                            class="form-control"
-                                            type="text"
-                                            name="username"
-                                            x-model="connection.username">
-                                </div>
-                                <div class="col-6">
-                                    <label for="Private_Key" class="form-label">Private Key</label>
-                                    <input id="Private_Key"
-                                        class="form-control"
-                                        type="file"
-                                        name="privatekey"
-                                        x-model="connection.privateKey">
-                                </div>
+                        </div>
+                        <div class="form__row">
+                            <div class="form__field">
+                                <label for="Username" class="form__label">Username</label>
+                                <input
+                                        id="Username"
+                                        class="input"
+                                        type="text"
+                                        name="username"
+                                        x-model="connection.username">
                             </div>
-                            <div class="form-group row mt-3">
-                                <div class="col-6">
-                                    <label for="Password" class="form-label">Password</label>
-                                    <input id="Password"
-                                        class="form-control"
-                                        type="password"
-                                        name="password"
-                                        placeholder=""
-                                        x-model="connection.password">
-                                </div>
+                            <div class="form__field">
+                                <label for="Private_Key" class="form__label">Private Key</label>
+                                <input id="Private_Key"
+                                    class="input"
+                                    type="file"
+                                    name="privatekey"
+                                    x-model="connection.privateKey">
                             </div>
-                            <div class="form-group row mt-4">
-                                <div class="col-md-12">
-                                    <button type="submit" class="btn btn-success text-white">Connect
-                                        <i x-show="state.loading" class="fa fa-spinner fa-spin ml-2"></i>
-                                    </button>
-                                </div>
+                        </div>
+                        <div class="form__row">
+                            <div class="form__field">
+                                <label for="Password" class="form__label">Password</label>
+                                <input id="Password"
+                                    class="input"
+                                    type="password"
+                                    name="password"
+                                    placeholder=""
+                                    x-model="connection.password">
                             </div>
-                        </form>
-                    </div>
+                            <div class="form__field"></div>
+                        </div>
+                        <div class="form__row form__row--actions">
+                            <div>
+                                <button type="submit" class="button button--primary">Connect
+                                    <i x-show="state.loading" class="fa fa-spinner fa-spin"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </section>
         </div>
 
-        <div class="terminal-wrapper container-fluid p-3 d-none">
-            <div id="terminal" x-ref="terminal" class="flex-grow-1"></div>
+        <div class="terminal-wrapper is-hidden">
+            <div id="terminal" x-ref="terminal"></div>
         </div>
     </div>
     <script src="../static/js/main.min.js"></script>
