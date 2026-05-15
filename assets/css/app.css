@@ -201,6 +201,23 @@ body {
     color: var(--muted-foreground);
 }
 
+.field__hint {
+    margin: var(--space-1) 0 0;
+    font-size: var(--text-xs);
+    color: var(--muted-foreground);
+    line-height: 1.4;
+}
+
+.field__hint a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.field__hint a:hover {
+    color: var(--foreground);
+}
+
 .input {
     display: block;
     width: 100%;

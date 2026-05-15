@@ -9,6 +9,20 @@ A small and simple web-based SSH client. Built with [Paramiko](https://www.param
   <img src="docs/wssh-htop.png" alt="Terminal session" width="49%">
 </p>
 
+## Trust & Security
+
+wssh is designed to run on infrastructure **you control**. When you upload a
+private key it's parsed in memory and held only for the duration of the SSH
+session, it's never written to disk, never re-transmitted, and never logged. When
+the session closes, the key is released to the garbage collector.
+
+That said, you should treat any hosted instance the same way you'd treat any
+SSH gateway: anyone with shell on the box can dump process memory or modify
+the source. **Don't paste production keys into a wssh instance you don't
+operate yourself.** For sensitive use, deploy your own copy from this
+repository and make sure `'debug': True` is flipped to `False` in `ssh.py`
+before exposing it to the network.
+
 ## Installation
 
 Requires Python >= 3.10. Uses the stdlib `venv` module and `pip`; no extra
