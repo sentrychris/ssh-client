@@ -1,200 +1,241 @@
-@import url("https://fonts.googleapis.com/css?family=Montserrat:400,700");
-@import url("https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap");
-
 @import "@xterm/xterm/css/xterm.css";
 
 /* =============================================================
-   Design tokens
+   Design tokens — shadcn/ui zinc palette (dark)
    ============================================================= */
 :root {
-    /* Colour */
-    --color-surface: #f5f5f5;
-    --color-card-bg: #ffffff;
-    --color-text: #212529;
-    --color-text-muted: #6c757d;
-    --color-text-danger: #dc3545;
-    --color-text-on-accent: #ffffff;
-    --color-accent: #28a745;
-    --color-accent-hover: #218838;
-    --color-accent-active: #1e7e34;
-    --color-border: #d0d4d9;
-    --color-input-border: #ced4da;
-    --color-input-focus: #80bdff;
-    --color-input-focus-shadow: rgba(0, 123, 255, 0.25);
-    --color-terminal-bg: #000000;
+    /* Surface */
+    --background: #09090b;          /* zinc-950 */
+    --foreground: #fafafa;          /* zinc-50 */
+    --card: #0c0c0e;                /* slightly lifted from bg */
+    --card-foreground: #fafafa;
+    --muted: #18181b;               /* zinc-900 */
+    --muted-foreground: #a1a1aa;    /* zinc-400 */
+    --border: rgb(255 255 255 / 0.10);
+    --border-strong: rgb(255 255 255 / 0.15);
+    --input-bg: #18181b;
+    --input-border: rgb(255 255 255 / 0.10);
+    --ring: rgb(255 255 255 / 0.30);
+    --primary: lab(27.036% 0 0);    /* dark neutral grey */
+    --primary-foreground: #fafafa;  /* white text */
+    --primary-hover: lab(33% 0 0);  /* slightly lifted on hover */
+    --destructive: #f87171;         /* red-400 */
+    --destructive-bg: rgb(248 113 113 / 0.10);
+    --destructive-border: rgb(248 113 113 / 0.25);
+    --success: #4ade80;             /* green-400 */
+    --success-bg: rgb(74 222 128 / 0.08);
+    --success-border: rgb(74 222 128 / 0.20);
+    --terminal-bg: #09090b;
+    --terminal-fg: #e4e4e7;
 
-    /* Spacing scale (4px base) */
-    --space-1: 0.25rem;  /* 4px */
-    --space-2: 0.5rem;   /* 8px */
-    --space-3: 0.75rem;  /* 12px */
-    --space-4: 1rem;     /* 16px */
-    --space-5: 1.5rem;   /* 24px */
-    --space-6: 2rem;     /* 32px */
+    /* Spacing scale */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-8: 3rem;
 
-    /* Radius */
-    --radius-sm: 4px;
-    --radius-md: 8px;
+    /* Radius (shadcn defaults) */
+    --radius-sm: 0.375rem;          /* 6px */
+    --radius-md: 0.5rem;            /* 8px */
+    --radius-lg: 0.625rem;          /* 10px */
 
     /* Typography */
-    --font-family-base: "Montserrat", "Lato", -apple-system, BlinkMacSystemFont,
-        "Segoe UI", Roboto, sans-serif;
-    --font-size-base: 1rem;
-    --font-size-sm: 0.875rem;
-    --font-size-lg: 1.125rem;
-    --font-weight-regular: 400;
-    --font-weight-bold: 700;
-    --line-height-base: 1.5;
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo,
+        Consolas, monospace;
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 0.9375rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.5rem;
+    --leading-normal: 1.5;
+    --leading-tight: 1.2;
 
-    /* Shadow */
-    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.06);
-
-    /* Layout */
-    --container-max-width: 960px;
+    color-scheme: dark;
 }
 
 /* =============================================================
    Base / reset
    ============================================================= */
-*, *::before, *::after {
-    box-sizing: border-box;
-}
-
-html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; padding: 0; }
 
 body {
-    overflow-x: hidden;
-    font-family: var(--font-family-base);
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-regular);
-    line-height: var(--line-height-base);
-    color: var(--color-text);
-    background: var(--color-surface);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+    color: var(--foreground);
+    background: var(--background);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv11", "ss01";
+}
+
+[x-cloak] { display: none !important; }
+.is-hidden { display: none !important; }
+
+/* =============================================================
+   App shell
+   ============================================================= */
+.app {
+    width: 100%;
+    min-height: 100%;
     display: flex;
     flex-direction: column;
 }
 
+.page {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-6) var(--space-4);
+    /* subtle radial vignette for depth, very common in dark shadcn pages */
+    background:
+        radial-gradient(ellipse at top, rgb(255 255 255 / 0.02), transparent 60%),
+        var(--background);
+}
+
 /* =============================================================
-   Layout helpers (project-owned, not framework)
+   Card
    ============================================================= */
-.app {
+.card {
     width: 100%;
-    height: 100%;
+    max-width: 28rem;
+    background: var(--card);
+    color: var(--card-foreground);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
 }
 
-.container {
-    width: 100%;
-    max-width: var(--container-max-width);
-    margin: 0 auto;
-    padding: 0 var(--space-4);
+.card__header {
+    padding: var(--space-6) var(--space-6) var(--space-2);
 }
 
-.is-hidden {
-    display: none !important;
+.card__title {
+    margin: 0;
+    font-size: var(--text-xl);
+    font-weight: 600;
+    line-height: var(--leading-tight);
+    letter-spacing: -0.01em;
 }
 
-/* =============================================================
-   Panel / card
-   ============================================================= */
-.panel {
-    background: var(--color-card-bg);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-card);
-    margin: var(--space-5) 0;
-    padding: var(--space-5);
+.card__description {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-sm);
+    color: var(--muted-foreground);
 }
 
-.panel__header {
-    color: var(--color-text-muted);
-    font-size: var(--font-size-lg);
-    padding-bottom: var(--space-4);
-    border-bottom: 1px solid var(--color-border);
-    margin-bottom: var(--space-4);
-}
-
-.panel__header .fa {
-    margin-right: var(--space-2);
-}
-
-.panel__body {
-    padding-top: var(--space-2);
-}
-
-/* =============================================================
-   Status message
-   ============================================================= */
-.status {
-    padding: var(--space-3) 0;
-    min-height: 1.5em;
-}
-
-.status__text--error {
-    color: var(--color-text-danger);
+.card__body {
+    padding: var(--space-5) var(--space-6) var(--space-6);
 }
 
 /* =============================================================
    Form
    ============================================================= */
-.form__row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
-    margin-bottom: var(--space-4);
-}
-
-.form__row--single {
-    grid-template-columns: 1fr 1fr;
-}
-
-.form__row--actions {
-    grid-template-columns: 1fr;
-    margin-top: var(--space-5);
-}
-
-@media (max-width: 600px) {
-    .form__row {
-        grid-template-columns: 1fr;
-    }
-}
-
-.form__field {
+.form {
     display: flex;
     flex-direction: column;
+    gap: var(--space-4);
 }
 
-.form__label {
-    display: inline-block;
-    margin-bottom: var(--space-2);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-text);
+.field-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-3);
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+}
+
+.label {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--foreground);
+    line-height: 1;
+}
+
+.label__hint {
+    font-weight: 400;
+    color: var(--muted-foreground);
 }
 
 .input {
     display: block;
     width: 100%;
-    padding: var(--space-2) var(--space-3);
+    height: 2.25rem;
+    padding: 0 var(--space-3);
     font-family: inherit;
-    font-size: var(--font-size-base);
-    line-height: var(--line-height-base);
-    color: var(--color-text);
-    background-color: var(--color-card-bg);
-    border: 1px solid var(--color-input-border);
+    font-size: var(--text-sm);
+    line-height: 1;
+    color: var(--foreground);
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
     border-radius: var(--radius-sm);
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+
+.input::placeholder { color: var(--muted-foreground); }
+
+.input:hover:not(:focus) { border-color: var(--border-strong); }
 
 .input:focus {
-    outline: 0;
-    border-color: var(--color-input-focus);
-    box-shadow: 0 0 0 3px var(--color-input-focus-shadow);
+    outline: none;
+    border-color: rgb(255 255 255 / 0.30);
+    box-shadow: 0 0 0 3px rgb(255 255 255 / 0.08);
 }
 
-.input[type="file"] {
-    padding: var(--space-2) var(--space-3);
+.input--file {
+    padding-top: 0.4rem;
+    padding-left: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--muted-foreground);
+}
+
+.input--file::file-selector-button {
+    margin-right: var(--space-3);
+    padding: 0.25rem var(--space-3);
+    font-family: inherit;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    color: var(--foreground);
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.input--file::file-selector-button:hover { background: rgb(255 255 255 / 0.06); }
+
+/* =============================================================
+   Status
+   ============================================================= */
+.status {
+    padding: var(--space-3);
+    font-size: var(--text-sm);
+    border: 1px solid;
+    border-radius: var(--radius-sm);
+}
+
+.status--error {
+    color: var(--destructive);
+    background: var(--destructive-bg);
+    border-color: var(--destructive-border);
+}
+
+.status--ok {
+    color: var(--success);
+    background: var(--success-bg);
+    border-color: var(--success-border);
 }
 
 /* =============================================================
@@ -204,62 +245,77 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: var(--space-2) var(--space-4);
+    gap: var(--space-2);
+    width: 100%;
+    height: 2.25rem;
+    padding: 0 var(--space-4);
     font-family: inherit;
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-bold);
-    line-height: var(--line-height-base);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    line-height: 1;
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: background-color 0.15s ease-in-out,
-        border-color 0.15s ease-in-out,
-        box-shadow 0.15s ease-in-out;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
     user-select: none;
+    margin-top: var(--space-2);
 }
 
-.button:focus {
-    outline: 0;
-    box-shadow: 0 0 0 3px var(--color-input-focus-shadow);
+.button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgb(255 255 255 / 0.15);
 }
+
+.button:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .button--primary {
-    color: var(--color-text-on-accent);
-    background-color: var(--color-accent);
-    border-color: var(--color-accent);
+    color: var(--primary-foreground);
+    background: var(--primary);
 }
 
-.button--primary:hover {
-    background-color: var(--color-accent-hover);
-    border-color: var(--color-accent-hover);
+.button--primary:hover:not(:disabled) { background: var(--primary-hover); }
+
+.button__spinner {
+    display: inline-block;
+    width: 0.875rem;
+    height: 0.875rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
 }
 
-.button--primary:active {
-    background-color: var(--color-accent-active);
-    border-color: var(--color-accent-active);
-}
-
-.button .fa {
-    margin-left: var(--space-2);
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* =============================================================
-   Terminal
+   Terminal — full viewport
+   xterm.js manages the inner element sizes (canvas, viewport,
+   screen) based on font metrics × rows × cols. Only constrain the
+   outer wrapper and the .xterm root; let the addon's fit() do the
+   rest.
    ============================================================= */
 .terminal-wrapper {
-    display: flex;
-    flex-direction: column;
-    width: 100vw;
-    height: 100vh;
-    padding: var(--space-3);
-    background: var(--color-terminal-bg);
+    position: fixed;
+    inset: 0;
+    background: var(--terminal-bg);
 }
 
 #terminal {
-    flex-grow: 1;
+    width: 100%;
+    height: 100%;
 }
 
-.xterm_display {
-    background: var(--color-terminal-bg);
-    overflow-y: hidden !important;
+#terminal .terminal.xterm {
+    width: 100%;
+    height: 100%;
+    padding: var(--space-2);
+}
+
+/* =============================================================
+   Responsive
+   ============================================================= */
+@media (max-width: 480px) {
+    .field-row { grid-template-columns: 1fr; }
+    .card__header { padding: var(--space-5) var(--space-5) var(--space-2); }
+    .card__body { padding: var(--space-4) var(--space-5) var(--space-5); }
 }
