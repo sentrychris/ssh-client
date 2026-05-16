@@ -1,0 +1,26 @@
+[Unit]
+Description=wssh - web-based SSH client
+Documentation=https://github.com/sentrychris/ssh-client
+After=network.target
+
+[Service]
+Type=simple
+User=<user>
+Group=<group>
+Environment=WSSH_DEBUG=0
+Environment=WSSH_COOKIE_SECRET=<paste output of `python -c "import secrets; print(secrets.token_hex(32))"`>
+Environment=WSSH_AUDIT_LOG=/var/log/wssh/audit.log
+Environment=WSSH_ALLOWED_ORIGINS=https://wssh.app
+WorkingDirectory=/opt/wssh
+ExecStart=/opt/wssh/.venv/bin/python /opt/wssh/ssh.py --address=127.0.0.1 --port=9001
+Restart=on-failure
+RestartSec=5
+
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target
