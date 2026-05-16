@@ -1,4 +1,3 @@
-import json
 import os
 import weakref
 from urllib.parse import urlparse
@@ -128,31 +127,17 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
 
     def on_message(self, message: str):
         """
-        Handles incoming messages from the websocket.
-
-        Messages are JSON envelopes:
-        - {"data": "..."}            keystrokes / paste forwarded to the SSH PTY
-        - {"resize": [cols, rows]}   PTY window-change request
+        Forwards the WS message verbatim to the per-session subprocess.
+        The subprocess parses the JSON envelope and dispatches:
+            {"data":   "..."}                     -> SSH stdin
+            {"resize": [cols, rows]}              -> channel.resize_pty
+        Keeping the parsing in the subprocess means the credential-bearing
+        process is the only one that ever touches terminal IO logic.
         """
 
         worker = self.worker_ref()
-        if not worker:
-            return
-
-        try:
-            msg = json.loads(message)
-        except (ValueError, TypeError):
-            return
-
-        if not isinstance(msg, dict):
-            return
-
-        if 'data' in msg:
-            worker.data_to_dest.append(msg['data'])
-            worker.on_write()
-        elif 'resize' in msg:
-            cols, rows = msg['resize']
-            worker.resize_pty(int(cols), int(rows))
+        if worker:
+            worker.send_to_session(message)
 
 
     def on_close(self):

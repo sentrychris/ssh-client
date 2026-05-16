@@ -1,170 +1,154 @@
+import os
+import signal
+import socket as socket_mod
+
 from tornado.ioloop import IOLoop
-from tornado.iostream import _ERRNO_CONNRESET
-from tornado.util import errno_from_exception
 from tornado.websocket import WebSocketClosedError
-from paramiko import SSHClient, Channel
-
-from .handlers.websocket import WebsocketHandler
 
 
-class Worker(object):
+class Worker:
     """
-    Manages communication between an SSH channel and a websocket handler.
+    Bridges a WebSocket handler to a per-session SSH subprocess via an
+    abstract Unix domain socket. The subprocess (``app.session_worker``)
+    holds the SSH client and credentials; this main-process proxy only
+    sees opaque bytes.
 
-    Attributes:
-        loop (IOLoop): The IOLoop instance used for handling events.
-        ssh (paramiko.SSHClient): The SSH client instance associated with the worker.
-        channel (paramiko.Channel): The SSH channel used for communication.
-        dest_addr (str): The destination address for the SSH connection.
-        fd (int): The file descriptor for the SSH channel.
-        id (str): Unique identifier for the worker instance.
-        data_to_dest (list of str): Buffer to hold data that needs to be sent to the SSH channel.
-        handler (WebSocketHandler | None): The websocket handler associated with the worker.
-        mode (int): The IOLoop mode for handling the worker's file descriptor (READ or WRITE).
-
-    Methods:
-        __call__(fd, events): Handles IOLoop events for the worker (READ, WRITE, ERROR).
-        set_handler(handler): Sets the websocket handler for the worker if not already set.
-        update_handler(mode): Updates the IOLoop handler mode (READ or WRITE).
-        on_read(): Reads data from the SSH channel and sends it to the websocket handler.
-        on_write(): Sends buffered data to the SSH channel.
-        close(): Closes the worker, SSH channel, and SSH client.
+    Wire protocol on the Unix socket:
+      Outbound (this proxy → subprocess): line-delimited JSON envelopes
+        identical to what the WebSocket client speaks ({"data":...} /
+        {"resize":[cols, rows]}).
+      Inbound  (subprocess → this proxy): raw bytes (terminal stdout),
+        forwarded as-is into a binary WebSocket frame.
     """
 
-    def __init__(self, ssh: SSHClient, channel: Channel, dest_addr: str):
-        """
-        Initializes the Worker instance.
-
-        Args:
-            ssh (paramiko.SSHClient): The SSH client instance.
-            channel (paramiko.Channel): The SSH channel for communication.
-            dest_addr (str): The destination address for the SSH connection.
-        """
-
-        self.loop = IOLoop.current()
-        self.ssh = ssh
-        self.channel = channel
+    def __init__(self, worker_id, sock, subprocess_obj, dest_addr):
+        self.id = worker_id
+        self.sock = sock                 # connected AF_UNIX socket (non-blocking)
+        self.fd = sock.fileno()
+        self.subprocess = subprocess_obj # tornado.process.Subprocess; .proc is Popen
         self.dest_addr = dest_addr
-        self.fd = channel.fileno()
-        self.id = str(id(self))
-        self.data_to_dest = []
         self.handler = None
+        self.loop = IOLoop.current()
         self.mode = IOLoop.READ
+        self._pending_writes = b''       # bytes queued for the subprocess
 
 
-    def __call__(self, fd: int, events: int):
-        """
-        Handles IOLoop events for the worker.
-
-        Args:
-            fd (int): The file descriptor for the event.
-            events (int): The bitmask of events (READ, WRITE, ERROR) to handle.
-        """
-
+    def __call__(self, fd, events):
         if events & IOLoop.READ:
-            self.on_read()
+            self._on_read()
         if events & IOLoop.WRITE:
-            self.on_write()
+            self._on_write()
         if events & IOLoop.ERROR:
             self.close()
 
 
-    def set_handler(self, handler: WebsocketHandler):
-        """
-        Sets the websocket handler for the worker if it is not already set.
-
-        Args:
-            handler (WebSocketHandler): The websocket handler to be set.
-        """
-
+    def set_handler(self, handler):
         if not self.handler:
             self.handler = handler
 
 
-    def update_handler(self, mode: int):
-        """
-        Updates the IOLoop handler mode if it has changed.
-
-        Args:
-            mode (int): The new IOLoop mode (READ or WRITE).
-        """
-
+    def _update_mode(self, mode):
         if self.mode != mode:
-            self.loop.update_handler(self.fd, mode)
+            try:
+                self.loop.update_handler(self.fd, mode)
+            except (KeyError, OSError):
+                return
             self.mode = mode
 
 
-    def on_read(self):
-        """
-        Reads data from the SSH channel and sends it to the websocket handler.
-        Closes the worker if there is an error or if the channel is closed.
-        """
-
+    def _on_read(self):
         try:
-            data = self.channel.recv(1024)
-        except (OSError, IOError) as e:
-            if errno_from_exception(e) in _ERRNO_CONNRESET:
-                self.close()
+            data = self.sock.recv(4096)
+        except (BlockingIOError, OSError):
+            return
+        if not data:
+            self.close()
+            return
+        if not self.handler:
+            return
+        try:
+            # Same wire format as the old paramiko-bridging Worker: binary
+            # WS frames, so multi-byte UTF-8 split across recv() boundaries
+            # doesn't trip the browser's text-frame UTF-8 decoder.
+            self.handler.write_message(data, binary=True)
+        except WebSocketClosedError:
+            self.close()
+
+
+    def _on_write(self):
+        if not self._pending_writes:
+            self._update_mode(IOLoop.READ)
+            return
+        try:
+            sent = self.sock.send(self._pending_writes)
+        except (BlockingIOError, OSError):
+            return
+        self._pending_writes = self._pending_writes[sent:]
+        if not self._pending_writes:
+            self._update_mode(IOLoop.READ)
+
+
+    def send_to_session(self, message):
+        """Forward a WS message (already a JSON envelope) to the subprocess.
+        Appends a newline so the worker's line-delimited parser advances."""
+
+        if isinstance(message, str):
+            line = message.encode('utf-8') + b'\n'
+        elif isinstance(message, (bytes, bytearray)):
+            line = bytes(message) + b'\n'
         else:
-            if not data:
-                self.close()
-                return
-
-            try:
-                self.handler.write_message(data, binary=True)
-            except WebSocketClosedError:
-                self.close()
-
-
-    def on_write(self):
-        """
-        Sends buffered data to the SSH channel.
-        Updates the IOLoop handler mode based on whether more data needs to be sent or read.
-        """
-
-        if not self.data_to_dest:
             return
 
-        data = ''.join(self.data_to_dest)
-
+        self._pending_writes += line
+        # Try a non-blocking write right away; if it would block, the
+        # IOLoop WRITE event will drain the rest.
         try:
-            sent = self.channel.send(data)
-        except (OSError, IOError) as e:
-            if errno_from_exception(e) in _ERRNO_CONNRESET:
-                self.close()
-            else:
-                self.update_handler(IOLoop.WRITE)
-        else:
-            self.data_to_dest = []
-            data = data[sent:]
-            if data:
-                self.data_to_dest.append(data)
-                self.update_handler(IOLoop.WRITE)
-            else:
-                self.update_handler(IOLoop.READ)
-
-
-    def resize_pty(self, cols: int, rows: int):
-        """
-        Forwards a window-change request to the SSH PTY so commands like
-        ``top`` re-render at the client terminal's actual dimensions.
-        """
-
-        try:
-            self.channel.resize_pty(width=cols, height=rows)
-        except (OSError, IOError):
-            pass
+            sent = self.sock.send(self._pending_writes)
+        except (BlockingIOError, OSError):
+            sent = 0
+        self._pending_writes = self._pending_writes[sent:]
+        if self._pending_writes:
+            self._update_mode(IOLoop.READ | IOLoop.WRITE)
 
 
     def close(self):
-        """
-        Closes the worker, SSH channel, and SSH client.
-        Removes the worker's file descriptor from the IOLoop and closes the websocket handler if set.
-        """
-
         if self.handler:
-            self.loop.remove_handler(self.fd)
-            self.handler.close()
+            try:
+                self.loop.remove_handler(self.fd)
+            except (KeyError, OSError):
+                pass
+            try:
+                self.handler.close()
+            except Exception:  # noqa: BLE001
+                pass
+            self.handler = None
 
-        self.channel.close()
-        self.ssh.close()
+        if self.sock is not None:
+            try:
+                self.sock.shutdown(socket_mod.SHUT_RDWR)
+            except OSError:
+                pass
+            try:
+                self.sock.close()
+            except OSError:
+                pass
+            self.sock = None
+
+        # Reap the subprocess. Closing the socket should make it exit on its
+        # own; SIGTERM ensures it does, and waitpid clears the zombie.
+        if self.subprocess is not None:
+            popen = getattr(self.subprocess, 'proc', None)
+            if popen is not None and popen.poll() is None:
+                try:
+                    popen.terminate()
+                except (ProcessLookupError, OSError):
+                    pass
+            if popen is not None:
+                try:
+                    popen.wait(timeout=2)
+                except Exception:  # noqa: BLE001
+                    try:
+                        popen.kill()
+                    except (ProcessLookupError, OSError):
+                        pass
+            self.subprocess = None
