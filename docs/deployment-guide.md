@@ -144,12 +144,6 @@ LockPersonality=true
 WantedBy=multi-user.target
 ```
 
-> **`ReadWritePaths` must list every directory the process writes to.** If you
-> change the install dir or move the audit log, update this line - otherwise
-> systemd fails namespace setup with `status=226/NAMESPACE` *before* the
-> Python process even starts (and `journalctl -u wssh` looks empty; use
-> `journalctl -xeu wssh` to see the namespace error).
-
 Enable and start:
 
 ```sh
