@@ -113,7 +113,17 @@ users mid-form would get a 403 after a redeploy.
 
 ## 7. systemd unit
 
-File: `/etc/systemd/system/wssh.service`
+A ready-to-edit template lives in the repo at
+[`systemd/wssh.service`](../systemd/wssh.service). Copy it into place and
+fill in the placeholders (`<user>`, `<group>`, the cookie secret, your
+install path):
+
+```sh
+sudo cp /opt/wssh/systemd/wssh.service /etc/systemd/system/wssh.service
+sudo $EDITOR /etc/systemd/system/wssh.service
+```
+
+For reference, the unit:
 
 ```ini
 [Unit]
@@ -123,10 +133,10 @@ After=network.target
 
 [Service]
 Type=simple
-User=wssh
-Group=wssh
+User=<user>
+Group=<group>
 Environment=WSSH_DEBUG=0
-Environment=WSSH_COOKIE_SECRET=<paste output of `python -c "import secrets; print(secrets.token_hex(32))"`>
+Environment=WSSH_COOKIE_SECRET=<32-byte hex secret from step 6>
 Environment=WSSH_AUDIT_LOG=/var/log/wssh/audit.log
 Environment=WSSH_ALLOWED_ORIGINS=https://wssh.app
 WorkingDirectory=/opt/wssh
@@ -134,6 +144,16 @@ ExecStart=/opt/wssh/.venv/bin/python /opt/wssh/ssh.py --address=127.0.0.1 --port
 Restart=on-failure
 RestartSec=5
 
+# --- resource limits ---
+# Each active session = one Python subprocess (~30 MB resident). Tune for
+# your host; values below are reasonable for a 2 GB / 2 vCPU VPS.
+MemoryHigh=768M
+MemoryMax=1G
+CPUQuota=200%
+TasksMax=512
+LimitNOFILE=4096
+
+# --- kernel hardening (safe, no impact on outbound SSH) ---
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
@@ -143,6 +163,24 @@ LockPersonality=true
 [Install]
 WantedBy=multi-user.target
 ```
+
+> **About the resource limits.** `MemoryMax` triggers an OOM kill on the
+> *whole* service if it's exceeded - protecting the host but ending all
+> active sessions. `MemoryHigh` is a softer throttle. `TasksMax` caps the
+> total threads/processes (each session = one subprocess + Tornado's
+> couple of helpers). `CPUQuota=200%` allows up to two full cores. Tune
+> for your hardware: at the defaults above and ~30 MB per subprocess, the
+> service handles roughly 25–30 concurrent sessions before OOM, well
+> matched to a 2 GB VPS with everything else running on it.
+
+> **About the omitted sandbox flags.** `NoNewPrivileges`, `PrivateTmp`,
+> `ProtectSystem=strict`, `ReadWritePaths`, and `ProtectHome=true` are
+> deliberately *not* in this unit - `ProtectHome=true` in particular
+> hides `~/.ssh/known_hosts` from paramiko, which causes confusing
+> outbound SSH behaviour even though paramiko's loader silently swallows
+> the IOError. If you don't need outbound SSH from `~/.ssh/*` at all and
+> want to add the rest back, copy from the previous version of this
+> guide; just leave `ProtectHome` off.
 
 Enable and start:
 
@@ -306,8 +344,9 @@ sudo systemctl restart wssh
 | Inline XSS / script injection | CSP locked to `'self'` (Alpine needs `'unsafe-eval'` for `x-*` expressions) |
 | Brute force / password spraying | `mod_evasive` blocks aggressive IPs for 5 min |
 | Crash dumps leaking key bytes | `RLIMIT_CORE = 0` |
-| Filesystem writes from compromised process | `ProtectSystem=strict` + narrow `ReadWritePaths` |
-| Process privilege escalation | `NoNewPrivileges`, dedicated `wssh` user, sandbox flags |
+| One session's bug exposing another's credentials | Per-session subprocess isolation (each `app.session_worker` runs in its own address space) |
+| Runaway resource usage taking down the host | systemd `MemoryMax`/`MemoryHigh`/`CPUQuota`/`TasksMax`/`LimitNOFILE` |
+| Kernel-level escalation primitives | `ProtectKernelTunables` / `ProtectKernelModules` / `ProtectControlGroups` / `LockPersonality` / `RestrictAddressFamilies` |
 | Untraceable activity | Audit log of every connect attempt (without credentials) |
 
 ---
@@ -316,10 +355,18 @@ sudo systemctl restart wssh
 
 ### `systemctl status wssh` shows `status=226/NAMESPACE`
 
-systemd refused to set up the sandbox before the process started. The
-process never ran, so `journalctl -u wssh` is empty. Run
-`journalctl -xeu wssh` to see the actual namespace error - almost always a
-path in `ReadWritePaths` that doesn't exist. Fix it, then:
+systemd refused to set up the sandbox before the process started - namespace
+setup fails *before* Python runs, so `journalctl -u wssh` is empty. Run
+`journalctl -xeu wssh` to see the specific systemd-side error. Common causes
+when you've added sandbox flags to the unit:
+
+- A path in `ReadWritePaths=` that doesn't exist on disk.
+- `ProtectHome=true` while the service user is something like `chris` whose
+  `~/.ssh/known_hosts` paramiko then can't read (silent breakage rather
+  than 226, but still confusing - leave `ProtectHome` out).
+- `PrivateTmp=true` combined with anything that expects a shared `/tmp`.
+
+Fix the offending line then:
 
 ```sh
 sudo systemctl daemon-reload

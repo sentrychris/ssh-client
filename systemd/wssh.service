@@ -16,6 +16,19 @@ ExecStart=/opt/wssh/.venv/bin/python /opt/wssh/ssh.py --address=127.0.0.1 --port
 Restart=on-failure
 RestartSec=5
 
+# --- resource limits ---
+# Each active session = one Python subprocess (~30 MB resident). Tune for
+# your host; values below are reasonable for a 2 GB / 2 vCPU VPS. Hitting
+# any of these triggers either an OOM-kill (Memory*) or refusal to fork
+# (Tasks*) - protects the host but means a flood of legit traffic will
+# 503 rather than wedge the box.
+MemoryHigh=768M
+MemoryMax=1G
+CPUQuota=200%
+TasksMax=512
+LimitNOFILE=4096
+
+# --- kernel hardening (safe, no impact on outbound SSH) ---
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
