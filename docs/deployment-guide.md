@@ -1,9 +1,9 @@
 # wssh - production deployment guide
 
-Step-by-step for deploying wssh behind Apache with TLS, the hardened systemd
-unit, the Tier 1 security configuration, and rate limiting at the edge.
+Step-by-step for deploying wssh behind Apache with TLS, includes a systemd
+unit, the security configuration, and rate limiting at the edge.
 
-Targeted at Ubuntu 22.04 / Debian 12. Adjust paths for other distros.
+This is targeted at Ubuntu 22.04 / Debian 12 but can be adjusted for other distros.
 
 ---
 
@@ -20,17 +20,17 @@ Targeted at Ubuntu 22.04 / Debian 12. Adjust paths for other distros.
                       Encrypt
 ```
 
-Apache terminates TLS, proxies everything to the Tornado app on
-`127.0.0.1:9001`. `/ws` goes through `mod_proxy_wstunnel`; everything else
+Apache proxies everything to the Tornado app on
+`127.0.0.1:9001`. `/ws` goes through `mod_proxy_wstunnel` and everything else
 through `mod_proxy_http`. Tornado serves the built static bundle from
-`/var/www/wssh/public/`.
+`/opt/wssh` (or wherever you decide to put it).
 
 ---
 
 ## 2. Prerequisites
 
 - A domain (e.g. `wssh.app`) with an A/AAAA record pointing at the server.
-- Ubuntu 22.04+ / Debian 12+ with root or sudo.
+- root or sudo.
 - Python 3.10 or newer.
 - Node 18 or newer (for the Vite build).
 
@@ -123,8 +123,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=<user>
-Group=<group>
+User=wssh
+Group=wssh
 Environment=WSSH_DEBUG=0
 Environment=WSSH_COOKIE_SECRET=<paste output of `python -c "import secrets; print(secrets.token_hex(32))"`>
 Environment=WSSH_AUDIT_LOG=/var/log/wssh/audit.log
@@ -161,43 +161,13 @@ journalctl -u wssh -f
 
 ---
 
-## 8. TLS certificate
+## 8. Apache vhost
 
-Issue a Let's Encrypt cert via certbot:
-
-```sh
-sudo certbot --apache -d wssh.app
-```
-
-Certbot will offer to write the redirect block automatically. If you'd rather
-manage the vhost yourself, use `certbot --apache --certonly -d wssh.app` and
-point the vhost at `/etc/letsencrypt/live/wssh.app/fullchain.pem` and
-`privkey.pem`.
-
-Auto-renewal is installed by the certbot package; verify with:
-
-```sh
-sudo systemctl list-timers | grep certbot
-```
-
----
-
-## 9. Apache vhost
-
-File: `/etc/apache2/sites-available/wssh.conf`
+File: `/etc/apache2/sites-available/<domain>.conf`
 
 ```apache
 <VirtualHost *:80>
-    ServerName wssh.app
-    Redirect permanent / https://wssh.app/
-</VirtualHost>
-
-<VirtualHost *:443>
-    ServerName wssh.app
-
-    SSLEngine on
-    SSLCertificateFile    /etc/letsencrypt/live/wssh.app/fullchain.pem
-    SSLCertificateKeyFile /etc/letsencrypt/live/wssh.app/privkey.pem
+    ServerName <domain>
 
     ProxyRequests Off
     ProxyPreserveHost On
@@ -209,11 +179,6 @@ File: `/etc/apache2/sites-available/wssh.conf`
     # Everything else (HTML, CSS, JS, SVG, POST /)
     ProxyPass        / http://127.0.0.1:9001/
     ProxyPassReverse / http://127.0.0.1:9001/
-
-    RequestHeader set X-Forwarded-Proto "https"
-
-    ErrorLog  ${APACHE_LOG_DIR}/wssh_error.log
-    CustomLog ${APACHE_LOG_DIR}/wssh_access.log combined
 </VirtualHost>
 ```
 
@@ -232,6 +197,24 @@ sudo systemctl reload apache2
 
 ---
 
+## 9. TLS certificate
+
+Issue a Let's Encrypt cert via certbot:
+
+```sh
+sudo certbot --apache -d <domain>
+```
+
+Certbot will offer to write the redirect block automatically.
+
+Auto-renewal is installed by the certbot package; verify with:
+
+```sh
+sudo systemctl list-timers | grep certbot
+```
+
+---
+
 ## 10. Rate limiting (mod_evasive)
 
 File: `/etc/apache2/mods-available/evasive.conf`
@@ -244,7 +227,6 @@ File: `/etc/apache2/mods-available/evasive.conf`
     DOSPageInterval     1         # interval (seconds)
     DOSSiteInterval     1
     DOSBlockingPeriod   300       # block IP for 5 minutes after threshold
-    DOSEmailNotify      you@wssh.app
     DOSLogDir           "/var/log/apache2/evasive"
 </IfModule>
 ```
@@ -314,7 +296,7 @@ sudo systemctl restart wssh
 
 ---
 
-## 14. What's protected (Tier 1 summary)
+## 14. What's protected
 
 | Threat | Mitigation |
 |---|---|
