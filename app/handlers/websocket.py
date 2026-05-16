@@ -112,9 +112,11 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
         """
 
         self.src_addr = self.get_addr()
-        worker = workers.pop(self.get_argument('id'), None)
+        worker = workers.get(self.get_argument('id'))
 
-        if not worker:
+        # Reject if not in the registry, OR if some other WS already
+        # attached to this worker - one session per worker.
+        if not worker or worker.handler is not None:
             self.close(reason='Invalid worker id')
             return
 

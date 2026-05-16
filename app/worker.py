@@ -1,9 +1,12 @@
 import os
 import signal
 import socket as socket_mod
+import time
 
 from tornado.ioloop import IOLoop
 from tornado.websocket import WebSocketClosedError
+
+from .handlers.base import ip_limiter
 
 
 class Worker:
@@ -21,16 +24,22 @@ class Worker:
         forwarded as-is into a binary WebSocket frame.
     """
 
-    def __init__(self, worker_id, sock, subprocess_obj, dest_addr):
+    def __init__(self, worker_id, sock, subprocess_obj, dest_addr, client_ip):
         self.id = worker_id
         self.sock = sock                 # connected AF_UNIX socket (non-blocking)
         self.fd = sock.fileno()
         self.subprocess = subprocess_obj # tornado.process.Subprocess; .proc is Popen
         self.dest_addr = dest_addr
+        self.client_ip = client_ip       # held until close() so ip_limiter can release
         self.handler = None
         self.loop = IOLoop.current()
         self.mode = IOLoop.READ
         self._pending_writes = b''       # bytes queued for the subprocess
+        # Activity tracking for the idle / max-session reaper. Updated on
+        # both inbound and outbound traffic so live-tail sessions (htop,
+        # tail -f) aren't reaped while output is still flowing.
+        self.created_at = time.monotonic()
+        self.last_activity_at = self.created_at
 
 
     def __call__(self, fd, events):
@@ -64,6 +73,7 @@ class Worker:
         if not data:
             self.close()
             return
+        self.last_activity_at = time.monotonic()
         if not self.handler:
             return
         try:
@@ -99,6 +109,7 @@ class Worker:
         else:
             return
 
+        self.last_activity_at = time.monotonic()
         self._pending_writes += line
         # Try a non-blocking write right away; if it would block, the
         # IOLoop WRITE event will drain the rest.
@@ -112,6 +123,18 @@ class Worker:
 
 
     def close(self):
+        # Drop from the active-sessions registry so the reaper / recycle
+        # don't see us again. Local import to avoid a circular import at
+        # module load time.
+        from .handlers.base import workers
+        workers.pop(self.id, None)
+
+        # Release the per-IP slot first, idempotently — close() can be
+        # called from multiple paths (WS close, reaper, recycle).
+        if self.client_ip is not None:
+            ip_limiter.release(self.client_ip)
+            self.client_ip = None
+
         if self.handler:
             try:
                 self.loop.remove_handler(self.fd)

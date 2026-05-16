@@ -9,7 +9,8 @@ import tornado
 from tornado.process import Subprocess
 
 from ..worker import Worker
-from .base import BaseHandler, workers, recycle
+from .base import (BaseHandler, MAX_SESSIONS_PER_IP, ip_limiter, recycle,
+                   workers)
 
 
 audit = logging.getLogger('wssh.audit')
@@ -84,6 +85,7 @@ class HttpHandler(BaseHandler):
         Logs the attempt to the audit log (without credentials)."""
 
         body_bytes = self.request.body
+        client_ip = self.request.remote_ip
 
         # Best-effort metadata extraction for the audit log only — never
         # touches the password or key. If JSON is malformed the audit
@@ -100,26 +102,42 @@ class HttpHandler(BaseHandler):
             pass
         meta = None  # release reference
 
+        # Per-IP concurrency check happens before we burn the cost of
+        # spawning a subprocess and resolving DNS.
+        if not ip_limiter.has_capacity(client_ip):
+            body_bytes = None
+            status = 'Concurrent connection limit reached ({} per IP).'.format(
+                MAX_SESSIONS_PER_IP)
+            audit.info('connect ip=%s target=%s user=%s auth=%s status=fail reason=%r',
+                       client_ip, target, user, auth, status)
+            self.write(dict(id=None, status=status))
+            return
+
+        # Acquire the slot pre-spawn; release on failure. On success it's
+        # held by the Worker and released in its close().
+        ip_limiter.acquire(client_ip)
+
         worker_id = None
         status = None
         try:
             worker_id, sock, proc = await self._spawn_session(body_bytes)
         except Exception as e:  # noqa: BLE001
             status = str(e)
+            ip_limiter.release(client_ip)
         finally:
             # Drop our reference to the credential-bearing body bytes.
             body_bytes = None
 
         if worker_id is not None:
-            worker = Worker(worker_id, sock, proc, target)
+            worker = Worker(worker_id, sock, proc, target, client_ip)
             workers[worker_id] = worker
             tornado.ioloop.IOLoop.current().call_later(3, recycle, worker)
 
         if status:
             audit.info('connect ip=%s target=%s user=%s auth=%s status=fail reason=%r',
-                       self.request.remote_ip, target, user, auth, status)
+                       client_ip, target, user, auth, status)
         else:
             audit.info('connect ip=%s target=%s user=%s auth=%s status=ok worker=%s',
-                       self.request.remote_ip, target, user, auth, worker_id)
+                       client_ip, target, user, auth, worker_id)
 
         self.write(dict(id=worker_id, status=status))

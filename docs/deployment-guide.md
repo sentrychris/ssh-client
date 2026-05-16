@@ -325,6 +325,9 @@ sudo systemctl restart wssh
 | `WSSH_AUDIT_LOG` | stderr | Path to the rotating audit log. Leave unset to log to stderr (→ journald under systemd). |
 | `WSSH_ALLOWED_ORIGINS` | same-origin only | Comma-separated extra origins permitted to open the WebSocket. Same-origin is always allowed. |
 | `WSSH_ALLOW_PRIVATE_TARGETS` | `0` | If `1`, disables the SSRF check and allows SSH to RFC1918 / loopback / link-local. Use only for local dev with `mock_sshd.py`. |
+| `WSSH_IDLE_TIMEOUT_S` | `600` (10 min) | A session is closed if no traffic flows in either direction for this long. Counts both keystrokes and remote output, so live-tail sessions (htop, `tail -f`) keep their session alive. Set to `0` to disable. |
+| `WSSH_MAX_SESSION_S` | `14400` (4 h) | Hard ceiling on session length regardless of activity. A periodic 30-second sweep tears down sessions older than this. Set to `0` to disable. |
+| `WSSH_MAX_SESSIONS_PER_IP` | `5` | Reject `POST /` if the client IP already has this many active sessions. The audit log records the rejection. Set to `0` to disable. |
 
 ---
 
@@ -346,6 +349,7 @@ sudo systemctl restart wssh
 | Crash dumps leaking key bytes | `RLIMIT_CORE = 0` |
 | One session's bug exposing another's credentials | Per-session subprocess isolation (each `app.session_worker` runs in its own address space) |
 | Runaway resource usage taking down the host | systemd `MemoryMax`/`MemoryHigh`/`CPUQuota`/`TasksMax`/`LimitNOFILE` |
+| Sessions held open indefinitely (resource hoarding) | Idle + max-age reaper (`WSSH_IDLE_TIMEOUT_S`, `WSSH_MAX_SESSION_S`); per-IP concurrency cap (`WSSH_MAX_SESSIONS_PER_IP`) |
 | Kernel-level escalation primitives | `ProtectKernelTunables` / `ProtectKernelModules` / `ProtectControlGroups` / `LockPersonality` / `RestrictAddressFamilies` |
 | Untraceable activity | Audit log of every connect attempt (without credentials) |
 

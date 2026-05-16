@@ -7,8 +7,10 @@ import secrets
 import sys
 from logging.handlers import RotatingFileHandler
 
+from tornado.ioloop import PeriodicCallback
 from tornado.options import define, options, parse_command_line
 from app import create_app
+from app.handlers.base import reaper
 
 
 # Define base directory
@@ -87,6 +89,11 @@ async def run():
     # xheaders=True so Tornado picks up X-Forwarded-For / X-Real-IP from the
     # Apache reverse proxy - without it, the audit log always says 127.0.0.1.
     app.listen(options.port, options.address, xheaders=True)
+
+    # Periodic sweep that closes idle / over-aged sessions. 30s cadence is
+    # fine - the cap thresholds are minutes-to-hours, not seconds.
+    PeriodicCallback(reaper, 30_000).start()
+
     print("Listening on http://{}:{}".format(options.address, options.port))
     await asyncio.Event().wait()
 
