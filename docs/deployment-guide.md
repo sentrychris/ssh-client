@@ -69,8 +69,8 @@ log in interactively.
 ## 4. Deploy the application
 
 ```sh
-sudo git clone https://github.com/sentrychris/wssh.git /var/www/wssh
-cd /var/www/wssh
+sudo git clone https://github.com/sentrychris/wssh.git /opt/wssh
+cd /opt/wssh
 
 sudo python3 -m venv .venv
 sudo .venv/bin/pip install .
@@ -78,10 +78,10 @@ sudo .venv/bin/pip install .
 sudo npm install
 sudo npm run build
 
-sudo chown -R wssh:wssh /var/www/wssh
+sudo chown -R wssh:wssh /opt/wssh
 ```
 
-The build produces `/var/www/wssh/public/{index.html,js,css,img}` - Tornado's
+The build produces `/opt/wssh/public/{index.html,js,css,img}` - Tornado's
 `static_path` and `template_path` both point here.
 
 ---
@@ -273,12 +273,12 @@ should show one line per attempt:
 ## 12. Updating
 
 ```sh
-cd /var/www/wssh
+cd /opt/wssh
 sudo -u wssh git pull
 sudo .venv/bin/pip install .
 sudo npm install
 sudo npm run build
-sudo chown -R wssh:wssh /var/www/wssh
+sudo chown -R wssh:wssh /opt/wssh
 sudo systemctl restart wssh
 ```
 
