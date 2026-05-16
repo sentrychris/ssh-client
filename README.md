@@ -23,6 +23,9 @@ operate yourself.** For sensitive use, deploy your own copy from this
 repository and make sure `'debug'` is set to `False` in `ssh.py`
 before exposing it to the network.
 
+Read [./docs/deployment-guide.md](./docs/deployment-guide.md) if you want to host
+your own instance.
+
 ## Installation
 
 Requires Python >= 3.10. Uses the stdlib `venv` module and `pip`; no extra
