@@ -109,6 +109,10 @@
                             <span x-show="state.loading" class="button__spinner" aria-hidden="true"></span>
                             <span x-show="state.loading">Connecting</span>
                         </button>
+                        <p class="form__notice">
+                            wssh does not verify SSH host keys. The remote host's
+                            fingerprint is shown when the session opens.
+                        </p>
                     </form>
                 </div>
             </article>

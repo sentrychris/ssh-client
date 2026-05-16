@@ -30,6 +30,8 @@ After "ok", the worker accepts ONE connection on the abstract Unix socket
 Either side closing the socket ends the session and the subprocess exits.
 """
 
+import base64
+import hashlib
 import io
 import ipaddress
 import json
@@ -39,6 +41,12 @@ import socket as socket_mod
 import sys
 
 import paramiko
+
+
+def _fingerprint(key):
+    """SHA256 host-key fingerprint matching ``ssh-keygen -lf`` output."""
+    digest = hashlib.sha256(key.asbytes()).digest()
+    return 'SHA256:' + base64.b64encode(digest).rstrip(b'=').decode('ascii')
 
 
 def _is_safe_target(hostname):
@@ -209,6 +217,14 @@ def main():
         _reply({'status': 'error', 'reason': str(e) or 'Connection failed.'})
         sys.exit(1)
 
+    # Capture the metadata we need for the banner before clearing body
+    # references (we don't want hostname to vanish with the password).
+    hostname = body.get('hostname', '?')
+    try:
+        host_fp = _fingerprint(ssh.get_transport().get_remote_server_key())
+    except Exception:  # noqa: BLE001
+        host_fp = '<unavailable>'
+
     # Best-effort: drop credential references so the GC can reclaim the
     # strings sooner. Python doesn't guarantee zeroing, but holding fewer
     # live references narrows the post-connect leak window.
@@ -234,6 +250,17 @@ def main():
         sys.exit(1)
     finally:
         server.close()
+
+    # Informational banner shown to the user. wssh doesn't verify host
+    # keys (AutoAddPolicy), so giving the user the fingerprint lets them
+    # mentally compare against what their admin told them. Dim styling
+    # via ANSI so it visually separates from the remote shell's output.
+    banner = '\r\n\x1b[2m[wssh] connected to {} ({})\x1b[0m\r\n\r\n'.format(
+        hostname, host_fp).encode('utf-8')
+    try:
+        client_sock.sendall(banner)
+    except OSError:
+        pass
 
     try:
         _bridge(client_sock, channel)
