@@ -12,7 +12,7 @@ A small and simple web-based SSH client. Built with [Paramiko](https://www.param
 ## Trust & Security
 
 > [!WARNING]
-> Be warned. Web-based SSH is a credential-harvesting nightmare by design.
+> Web-based SSH is a credential-harvesting nightmare by design. Proceed with caution.
 
 wssh is designed to run on infrastructure **you control**. When you upload a
 private key it's parsed in memory and held only for the duration of the SSH
